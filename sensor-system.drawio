@@ -1,0 +1,76 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.9 Chrome/134.0.6998.205 Electron/35.4.0 Safari/537.36" version="27.0.9">
+  <diagram name="Page-1" id="0Fds_IvH_rpwKlloqNC5">
+    <mxGraphModel dx="983" dy="580" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="rezfCyd87ID24qsZE8oq-10" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-1" target="rezfCyd87ID24qsZE8oq-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-1" value="&lt;font style=&quot;color: rgb(255, 255, 255);&quot;&gt;SU1&lt;/font&gt;" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_thing_humidity_sensor;" vertex="1" parent="1">
+          <mxGeometry x="286" y="610" width="42" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-12" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-2" target="rezfCyd87ID24qsZE8oq-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-2" value="SUn" style="sketch=0;outlineConnect=0;fontColor=#FFFFFF;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_thing_temperature_humidity_sensor;" vertex="1" parent="1">
+          <mxGeometry x="280" y="830" width="46" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-11" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-3" target="rezfCyd87ID24qsZE8oq-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-3" value="SU2" style="sketch=0;outlineConnect=0;fontColor=#FFFFFF;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.sensor;" vertex="1" parent="1">
+          <mxGeometry x="294.31" y="740" width="37.69" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-34" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-4" target="rezfCyd87ID24qsZE8oq-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-35" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-4" target="rezfCyd87ID24qsZE8oq-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-4" value="CU" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=#2D7600;fillColor=#60a917;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.communications.sms_gateway;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="396" y="703" width="59" height="37" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-14" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-13" target="rezfCyd87ID24qsZE8oq-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-13" value="&lt;div&gt;Connect different sensors to the communication unit which will then relay the informationm to the database&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontColor=#FFFFFF;labelBackgroundColor=none;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="500" y="580" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-17" value="CU - commiuunication unit&lt;br&gt;HIt will be responsible for storing the data from sensors and potentially will communicate with external service in order to store the data&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontColor=#FFFFFF;labelBackgroundColor=none;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="340" y="890" width="150" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-18" value="&lt;div&gt;Communication unit will have internal storage that it can use to keep information it should also contain a geolocation sensor&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontColor=#FFFFFF;labelBackgroundColor=none;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="680" y="600" width="180" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-19" value="" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_analytics_data_store;" vertex="1" parent="1">
+          <mxGeometry x="626" y="770" width="54" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-25" value="SU1d" style="html=1;verticalLabelPosition=bottom;align=center;labelBackgroundColor=none;verticalAlign=top;strokeWidth=2;strokeColor=#2D7600;shadow=0;dashed=0;shape=mxgraph.ios7.icons.document;fillColor=none;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="460" y="740" width="21" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-30" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-27" target="rezfCyd87ID24qsZE8oq-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-33" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-27" target="rezfCyd87ID24qsZE8oq-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-27" value="Web application" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="703" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-31" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-28" target="rezfCyd87ID24qsZE8oq-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-28" value="Desktop app" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="890" y="850" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-32" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-29" target="rezfCyd87ID24qsZE8oq-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-29" value="Mobile app" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.mobile;pointerEvents=1;" vertex="1" parent="1">
+          <mxGeometry x="815" y="925" width="35" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
