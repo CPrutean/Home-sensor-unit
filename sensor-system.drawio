@@ -1,74 +1,142 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.9 Chrome/134.0.6998.205 Electron/35.4.0 Safari/537.36" version="27.0.9">
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.0.4 Chrome/138.0.7204.97 Electron/37.2.1 Safari/537.36" version="28.0.4">
   <diagram name="Page-1" id="0Fds_IvH_rpwKlloqNC5">
-    <mxGraphModel dx="983" dy="580" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2528" dy="2231" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="rezfCyd87ID24qsZE8oq-10" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-1" target="rezfCyd87ID24qsZE8oq-4">
+        <mxCell id="rezfCyd87ID24qsZE8oq-35" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontColor=default;entryX=-0.005;entryY=0.345;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="rezfCyd87ID24qsZE8oq-4" target="Zc84l5hy1IKvFRaaAcP0-29" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-1" value="&lt;font style=&quot;color: rgb(255, 255, 255);&quot;&gt;SU1&lt;/font&gt;" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_thing_humidity_sensor;" vertex="1" parent="1">
-          <mxGeometry x="286" y="610" width="42" height="42" as="geometry" />
+        <mxCell id="rezfCyd87ID24qsZE8oq-4" value="CU&lt;br&gt;(Controller unit)" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=#2D7600;fillColor=#60a917;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.communications.sms_gateway;fontColor=default;" parent="1" vertex="1">
+          <mxGeometry x="-129" y="140" width="59" height="37" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-12" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-2" target="rezfCyd87ID24qsZE8oq-4">
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-17" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-13" target="rezfCyd87ID24qsZE8oq-1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-2" value="SUn" style="sketch=0;outlineConnect=0;fontColor=#FFFFFF;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_thing_temperature_humidity_sensor;" vertex="1" parent="1">
-          <mxGeometry x="280" y="830" width="46" height="46" as="geometry" />
+        <mxCell id="rezfCyd87ID24qsZE8oq-13" value="&lt;div&gt;Connect different sensors to the communication unit which will then store the information&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontColor=default;labelBackgroundColor=none;align=left;verticalAlign=top;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="-370" y="355" width="150" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-11" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-3" target="rezfCyd87ID24qsZE8oq-4">
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-27" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-17" target="rezfCyd87ID24qsZE8oq-4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-3" value="SU2" style="sketch=0;outlineConnect=0;fontColor=#FFFFFF;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.sensor;" vertex="1" parent="1">
-          <mxGeometry x="294.31" y="740" width="37.69" height="42" as="geometry" />
+        <mxCell id="rezfCyd87ID24qsZE8oq-17" value="CU - commiuunication unit&lt;br&gt;HIt will be responsible for storing the data from sensors and potentially will communicate with external service in order to store the data. Also. CU should be pluggable with alert systems (AS)&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontColor=default;labelBackgroundColor=none;align=left;verticalAlign=top;" parent="1" vertex="1">
+          <mxGeometry x="-520" y="-170" width="160" height="145" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-34" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-4" target="rezfCyd87ID24qsZE8oq-19">
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-22" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-18" target="rezfCyd87ID24qsZE8oq-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-110" y="130" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-18" value="&lt;div&gt;Communication unit will have internal storage where sensor data will be stored. The question is to determine how sensor data will contain the time. CU should also contain a geolocation sensor&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontColor=default;labelBackgroundColor=none;align=left;verticalAlign=top;fillColor=none;" parent="1" vertex="1">
+          <mxGeometry x="70" width="180" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-24" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-25" target="rezfCyd87ID24qsZE8oq-4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-35" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-4" target="rezfCyd87ID24qsZE8oq-19">
+        <mxCell id="rezfCyd87ID24qsZE8oq-25" value="SC1 data" style="html=1;verticalLabelPosition=bottom;align=center;labelBackgroundColor=none;verticalAlign=top;strokeWidth=2;strokeColor=#2D7600;shadow=0;dashed=0;shape=mxgraph.ios7.icons.document;fillColor=none;fontColor=default;" parent="1" vertex="1">
+          <mxGeometry x="-76" y="70" width="21" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-27" value="Web application" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontColor=default;" parent="1" vertex="1">
+          <mxGeometry x="420" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-28" value="Desktop app" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fontColor=default;" parent="1" vertex="1">
+          <mxGeometry x="470" y="310" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-29" value="Mobile app" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.mobile;pointerEvents=1;fontColor=default;" parent="1" vertex="1">
+          <mxGeometry x="540" y="430" width="35" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-7" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="-390" y="19" width="220" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-5" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="Zc84l5hy1IKvFRaaAcP0-7">
+          <mxGeometry width="220" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-1" value="&lt;font style=&quot;&quot;&gt;SU1&lt;br&gt;(Sensor Unit)&lt;/font&gt;" style="sketch=0;outlineConnect=0;fontColor=default;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_thing_humidity_sensor;" parent="Zc84l5hy1IKvFRaaAcP0-7" vertex="1">
+          <mxGeometry x="30" y="30" width="42" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-2" value="SUn" style="sketch=0;outlineConnect=0;fontColor=default;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_thing_temperature_humidity_sensor;" parent="Zc84l5hy1IKvFRaaAcP0-7" vertex="1">
+          <mxGeometry x="90" y="28" width="46" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-3" value="SU2" style="sketch=0;outlineConnect=0;fontColor=default;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.sensor;" parent="Zc84l5hy1IKvFRaaAcP0-7" vertex="1">
+          <mxGeometry x="160" y="30" width="37.69" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-6" value="SC1&lt;br&gt;(Sensors Cluster)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="Zc84l5hy1IKvFRaaAcP0-7">
+          <mxGeometry x="55" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-8" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=classicThin;endFill=1;" edge="1" parent="1" source="Zc84l5hy1IKvFRaaAcP0-5" target="rezfCyd87ID24qsZE8oq-4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-4" value="CU" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=#2D7600;fillColor=#60a917;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.communications.sms_gateway;fontColor=#ffffff;" vertex="1" parent="1">
-          <mxGeometry x="396" y="703" width="59" height="37" as="geometry" />
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-9" value="" style="group;dashed=1;strokeColor=none;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="-535" y="160" width="220" height="112" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-14" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-13" target="rezfCyd87ID24qsZE8oq-1">
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-10" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="Zc84l5hy1IKvFRaaAcP0-9">
+          <mxGeometry width="220" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-11" value="&lt;font style=&quot;&quot;&gt;SU1&lt;br&gt;(Sensor Unit)&lt;/font&gt;" style="sketch=0;outlineConnect=0;fontColor=default;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_thing_humidity_sensor;" vertex="1" parent="Zc84l5hy1IKvFRaaAcP0-9">
+          <mxGeometry x="30" y="30" width="42" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-12" value="SUn" style="sketch=0;outlineConnect=0;fontColor=default;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_thing_temperature_humidity_sensor;" vertex="1" parent="Zc84l5hy1IKvFRaaAcP0-9">
+          <mxGeometry x="90" y="28" width="46" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-13" value="SU2" style="sketch=0;outlineConnect=0;fontColor=default;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.sensor;" vertex="1" parent="Zc84l5hy1IKvFRaaAcP0-9">
+          <mxGeometry x="160" y="30" width="37.69" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-14" value="SCn" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="Zc84l5hy1IKvFRaaAcP0-9">
+          <mxGeometry x="55" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-15" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1.005;exitY=0.561;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="Zc84l5hy1IKvFRaaAcP0-10" target="rezfCyd87ID24qsZE8oq-4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-13" value="&lt;div&gt;Connect different sensors to the communication unit which will then relay the informationm to the database&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontColor=#FFFFFF;labelBackgroundColor=none;align=left;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="500" y="580" width="150" height="100" as="geometry" />
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-18" value="ASU&lt;br&gt;ArduinoSU" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_thing_temperature_sensor;" vertex="1" parent="1">
+          <mxGeometry x="-790" y="425" width="78" height="78" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-17" value="CU - commiuunication unit&lt;br&gt;HIt will be responsible for storing the data from sensors and potentially will communicate with external service in order to store the data&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontColor=#FFFFFF;labelBackgroundColor=none;align=left;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="340" y="890" width="150" height="120" as="geometry" />
-        </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-18" value="&lt;div&gt;Communication unit will have internal storage that it can use to keep information it should also contain a geolocation sensor&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontColor=#FFFFFF;labelBackgroundColor=none;align=left;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="680" y="600" width="180" height="90" as="geometry" />
-        </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-19" value="" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_analytics_data_store;" vertex="1" parent="1">
-          <mxGeometry x="626" y="770" width="54" height="78" as="geometry" />
-        </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-25" value="SU1d" style="html=1;verticalLabelPosition=bottom;align=center;labelBackgroundColor=none;verticalAlign=top;strokeWidth=2;strokeColor=#2D7600;shadow=0;dashed=0;shape=mxgraph.ios7.icons.document;fillColor=none;fontColor=#FFFFFF;" vertex="1" parent="1">
-          <mxGeometry x="460" y="740" width="21" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-30" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-27" target="rezfCyd87ID24qsZE8oq-19">
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zc84l5hy1IKvFRaaAcP0-19" target="Zc84l5hy1IKvFRaaAcP0-18">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-33" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-27" target="rezfCyd87ID24qsZE8oq-4">
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-19" value="Arduino SU implementation will store the data into RAM with an ending delimiter. On failure it will store lets say -1 (will define default value later)" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontColor=default;labelBackgroundColor=none;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="-810" y="575" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-26" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Zc84l5hy1IKvFRaaAcP0-25" target="rezfCyd87ID24qsZE8oq-4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-27" value="Web application" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
-          <mxGeometry x="1040" y="703" width="120" height="60" as="geometry" />
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-25" value="&lt;div&gt;CU could be ESP32, or Phone OR RaspPi. To clarify if ESP 32 can run/offer an Web Service&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontColor=default;labelBackgroundColor=none;align=left;verticalAlign=top;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="-246" y="225" width="170" height="85" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-31" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-28" target="rezfCyd87ID24qsZE8oq-19">
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-30" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="120" y="200" width="280" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-29" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="Zc84l5hy1IKvFRaaAcP0-30">
+          <mxGeometry width="280" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="rezfCyd87ID24qsZE8oq-19" value="" style="sketch=0;outlineConnect=0;fontColor=default;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_analytics_data_store;" parent="Zc84l5hy1IKvFRaaAcP0-30" vertex="1">
+          <mxGeometry x="29" y="14" width="54" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-39" value="Sensors Management" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="Zc84l5hy1IKvFRaaAcP0-30">
+          <mxGeometry x="90" y="10" width="170" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-31" value="Text" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="-130" y="210" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-32" value="Text" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="-130" y="210" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-40" value="CUn" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=#2D7600;fillColor=#60a917;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.communications.sms_gateway;fontColor=default;" vertex="1" parent="1">
+          <mxGeometry x="-40" y="290" width="59" height="37" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-41" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.167;entryY=-0.015;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=classicThin;endFill=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-4" target="Zc84l5hy1IKvFRaaAcP0-29">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-28" value="Desktop app" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
-          <mxGeometry x="890" y="850" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-32" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-29" target="rezfCyd87ID24qsZE8oq-19">
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-42" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.011;entryY=0.57;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=classicThin;endFill=1;" edge="1" parent="1" source="Zc84l5hy1IKvFRaaAcP0-40" target="Zc84l5hy1IKvFRaaAcP0-29">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="rezfCyd87ID24qsZE8oq-29" value="Mobile app" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.mobile;pointerEvents=1;" vertex="1" parent="1">
-          <mxGeometry x="815" y="925" width="35" height="50" as="geometry" />
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.614;entryY=-0.062;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-27" target="Zc84l5hy1IKvFRaaAcP0-29">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.016;entryY=0.445;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-28" target="Zc84l5hy1IKvFRaaAcP0-29">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Zc84l5hy1IKvFRaaAcP0-45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.608;entryY=1.044;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="rezfCyd87ID24qsZE8oq-29" target="Zc84l5hy1IKvFRaaAcP0-29">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

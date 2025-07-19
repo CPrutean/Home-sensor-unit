@@ -1,4 +1,5 @@
-# Design document
+# Design idea 1
+
 ## Sensor unit design
 ### Will be connected to one or more sensors which will be used to communicate with the main
 ### board
