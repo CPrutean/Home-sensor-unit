@@ -1,0 +1,134 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.0.4 Chrome/138.0.7204.97 Electron/37.2.1 Safari/537.36" version="28.0.4">
+  <diagram name="Page-1" id="XTuazq6Kgi5UWaeGjhAd">
+    <mxGraphModel dx="1426" dy="1941" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-9" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-1" target="w7EPf_Cx7RpyWyVT9lFu-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-1" value="&lt;font&gt;Sensor Unit&lt;/font&gt;" style="sketch=0;outlineConnect=0;fontColor=#FFFFFF;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.iot_thing_temperature_sensor;" vertex="1" parent="1">
+          <mxGeometry x="50" y="170" width="78" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-4" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-2" target="w7EPf_Cx7RpyWyVT9lFu-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-2" value="&lt;div&gt;Behaviour:&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;Sensor units are responsible for aggregating data and collecting information to relay to the main communication unit" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="19" y="310" width="140" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-7" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-5" target="w7EPf_Cx7RpyWyVT9lFu-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-5" value="Implementation:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Esp32 will collect data and then communicate with the main Esp module using EspNOW communication protocol&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="19" y="-20" width="140" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-11" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-8" target="w7EPf_Cx7RpyWyVT9lFu-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-20" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-8" target="w7EPf_Cx7RpyWyVT9lFu-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-8" value="Communication unit&lt;div&gt;&lt;br&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=#2D7600;fillColor=#60a917;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.communications.equipment_mailbox;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="340" y="159.75" width="110" height="98.5" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-14" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-12">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="395" y="290" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-12" value="Behaviour:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;The communication unit is supposed to aggregate information from all sensor units. The communication unit is the only device which has access to all of the sensor units&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="302.5" y="340" width="185" height="185" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-16" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-15" target="w7EPf_Cx7RpyWyVT9lFu-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-15" value="Implementation:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Will be implemented as a larger Esp32 board and will be responsible for communicating with the database and the web endpoint to relay commands to sensor units&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="230" y="-65" width="170" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-21" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-19" target="w7EPf_Cx7RpyWyVT9lFu-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-31" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-19">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="980" y="209" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-19" value="Database" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=3;image=img/lib/active_directory/database_server.svg;" vertex="1" parent="1">
+          <mxGeometry x="670" y="152" width="93.48" height="114" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-23" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-22">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="717" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-22" value="Behavior:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;The database will store logs of every event, keeping track of the datapoints, the type of event, the data attached to the event.&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="628.37" y="344.13" width="176.74" height="176.74" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-25" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-24" target="w7EPf_Cx7RpyWyVT9lFu-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-24" value="Implementation:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;The database will be a raspberry pi with a expansion board with an SSD attached.&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="690" y="-57.5" width="155" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-27" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-26" target="w7EPf_Cx7RpyWyVT9lFu-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-26" value="Implementation:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Will be directly connected and communicate using UART/I2C/SPI&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="470" y="-58.75" width="157.5" height="157.5" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-29" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.07;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-26" target="w7EPf_Cx7RpyWyVT9lFu-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-32" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" target="w7EPf_Cx7RpyWyVT9lFu-19">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="970" y="209" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-30" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;Web end point" style="points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;fillColor=#60a917;strokeColor=#2D7600;shape=mxgraph.alibaba_cloud.cwh_cloud_web_hosting;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="990" y="167.89000000000001" width="89.8" height="82.23" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-34" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-33">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1034.8999999999996" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-33" value="Behaviour:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Will interact with the database and will send information to applications which request the data&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="962.45" y="360.05" width="144.9" height="144.9" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-36" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-35" target="w7EPf_Cx7RpyWyVT9lFu-30">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-35" value="Implementation:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;The raspberry pi will act as a web end point which will send information to the web application built on top of it and send commands to the sensor units.&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="959.9" y="-55" width="150" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-40" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-37">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1080" y="209.0050000000001" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-37" value="&lt;span style=&quot;&quot;&gt;Camera unit&lt;/span&gt;" style="html=1;verticalLabelPosition=bottom;align=center;labelBackgroundColor=none;verticalAlign=top;strokeWidth=2;strokeColor=#2D7600;shadow=0;dashed=0;shape=mxgraph.ios7.icons.camera;fillColor=none;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="176.06" width="110" height="65.88" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-41" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=-0.018;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-30" target="w7EPf_Cx7RpyWyVT9lFu-37">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-43" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-42">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1255" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-42" value="Behaviour:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Will take a live feed and communicate it directly with the web endpoint&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="1193.75" y="371.25" width="122.5" height="122.5" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-45" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-44">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1255" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-44" value="Implementation:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;An esp32 cam will feed a stream to a web endpoint which will display a live feed&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="1187.5" y="-47.5" width="135" height="135" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
