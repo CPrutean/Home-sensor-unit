@@ -1,6 +1,7 @@
 #include <LCD_I2C.h>
 #include <esp_now.h>
 #include <string.h>
+#include <WiFi.h>
 
 #define bool char
 #define true 1
@@ -20,7 +21,8 @@ typedef struct struct_message{
 const u_int8_t broadcastAddress[] = {0x3C, 0x8A, 0x1F, 0xD5, 0x44, 0xF8};
 esp_now_peer_info_t peerInfo;
 
-struct_message msg;
+struct_message send;
+struct_message recieve;
 
 
 void setup() {
@@ -45,36 +47,27 @@ void setup() {
     Serial.println("Failed to add peer");
     exit(0);
   }
-  esp_now_register_send_cb(OnDataSent);
-  esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
+  esp_now_register_send_cb(onDataSent);
+  esp_now_register_recv_cb(esp_now_recv_cb_t(onDataRecv));
 }
 
 
 void onButtonPress() {
-  strncpy(msg.message, "PULL TEMP", strlen(msg.message));
-  esp_err_t result = esp_send_now(broadcastAddress, (u_int8_t*)&msg, sizeof(msg));
-  if (result == ESP_OK) {
-    Serial.println("Message was sent");
-  } else {
-    Serial.println("Message failed to send exiting");
-  }
+  strncpy(send.message, "PULL TEMP", strlen(msg.message));
+  esp_err_t result = esp_now_send(broadcastAddress, (u_int8_t*)&send, sizeof(send));
   
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(msg.message);
-  lcd.setCursor(strlen(msg.message), 0);
-  lcd.print(msg.value);
+  lcd.setCursor(strlen(recieve.message), 0);
+  lcd.print(recieve.value);
 
   lcd.setCursor(0, 1);
   strncpy(msg.message, "PULL HUMID", strlen("PULL HUMID"));
-  esp_err_t result = esp_send_now(broadcastAddress, (u_int8_t*)&msg, sizeof(msg));
-  if (result == ESP_OK) {
-    Serial.println("Message was sent");
-  } else {
-    Serial.println("Message failed to send exiting");
-  }
-  lcd.setCursor(strlen(msg.message), 1);
-  lcd.print(msg.value);
+  result = esp_now_send(broadcastAddress, (u_int8_t*)&send, sizeof(send));
+  
+  lcd.setCursor(strlen(recieve.message), 1);
+  lcd.print(recieve.value);
 }
 
 int temp;
@@ -96,6 +89,6 @@ void onDataSent(const u_int8_t *addr, esp_now_send_status_t status) {
 }
 
 void onDataRecv(const u_int8_t * adr, const u_int8_t * data, int len) {
-  memcpy(&msg, incomingData, sizeof(msg));
+  memcpy(&recieve, data, sizeof(recieve));
 }
 
