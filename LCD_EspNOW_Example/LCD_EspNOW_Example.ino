@@ -64,7 +64,7 @@ void onButtonPress() {
   lcd.print(msg.message);
   lcd.setCursor(strlen(msg.message), 0);
   lcd.print(msg.value);
-  
+
   lcd.setCursor(0, 1);
   strncpy(msg.message, "PULL HUMID", strlen("PULL HUMID"));
   esp_err_t result = esp_send_now(broadcastAddress, (u_int8_t*)&msg, sizeof(msg));
@@ -76,8 +76,6 @@ void onButtonPress() {
   lcd.setCursor(strlen(msg.message), 1);
   lcd.print(msg.value);
 }
-
-
 
 int temp;
 int button;
