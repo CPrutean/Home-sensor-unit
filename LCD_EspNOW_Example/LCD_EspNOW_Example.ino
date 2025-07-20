@@ -53,17 +53,17 @@ void setup() {
 
 
 void onButtonPress() {
-  strncpy(send.message, "PULL TEMP", strlen(msg.message));
+  strncpy(send.message, "PULL TEMP", strlen(send.message));
   esp_err_t result = esp_now_send(broadcastAddress, (u_int8_t*)&send, sizeof(send));
   
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print(msg.message);
+  lcd.print(recieve.message);
   lcd.setCursor(strlen(recieve.message), 0);
   lcd.print(recieve.value);
 
   lcd.setCursor(0, 1);
-  strncpy(msg.message, "PULL HUMID", strlen("PULL HUMID"));
+  strncpy(send.message, "PULL HUMID", strlen("PULL HUMID"));
   result = esp_now_send(broadcastAddress, (u_int8_t*)&send, sizeof(send));
   
   lcd.setCursor(strlen(recieve.message), 1);
