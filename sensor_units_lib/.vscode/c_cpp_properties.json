@@ -10,11 +10,12 @@
                 "C:/Program Files (x86)/Arduino/hardware/arduino/avr/variants/standard", // Standard variant for AVR boards
                 "${HOME}/.arduino15/packages/**", // Path for libraries installed via Board Manager (e.g., ESP32, ESP8266)
                 // Add paths for other boards if you develop for them, e.g.:
-                "C:/Users/calin/AppData/Local/Arduino15/packages/esp32/hardware/esp32/1.0.6/cores/esp32",
-                // "C:/Users/YOUR_USERNAME/AppData/Local/Arduino15/packages/esp32/hardware/esp32/1.0.6/variants/esp32"
+                "C:/Users/calin/AppData/Local/Arduino15/packages/esp32/hardware/esp32/3.2.1/cores/esp32",
+                "C:/Users/calin/AppData/Local/Arduino15/packages/esp32/hardware/esp32/3.2.1/variants/esp32",
+                "C:/Users/calin/OneDrive/Documents/Arduino/libraries/DHT_sensor_library"
             ],
             "forcedInclude": [
-                "C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino/Arduino.h" // Force include Arduino.h for IntelliSense
+                "C:/Program Files (x86)/Arduino/hardware/arduino/avr/cores/arduino/Arduino.h"
             ],
             "defines": [
                 "F_CPU=16000000L", // Common CPU frequency for Uno
