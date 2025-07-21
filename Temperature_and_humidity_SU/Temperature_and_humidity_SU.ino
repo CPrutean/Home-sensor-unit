@@ -16,7 +16,6 @@ typedef struct struct_message{
 //Board address here 
 uint8_t broadcastAddress[] = {0x3C, 0x8A, 0x1F, 0xD3, 0xD6, 0xEC};
 const char* module = "temp_and_humid_SU";
-struct_message send;
 struct_message recieve;
 esp_now_peer_info_t peerInfo;
 
@@ -32,7 +31,7 @@ void setup() {
 
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
   peerInfo.channel = 0;
-  peerInfo.encrypt = true;
+  peerInfo.encrypt = false;
 
   if (esp_now_add_peer(&peerInfo)!= ESP_OK) {
     Serial.println("Failed to add peer");
@@ -43,26 +42,29 @@ void setup() {
 }
 
 void parseMsg() {
-  if (recieve.message[0] == NULL && recieve.value == NULL) {
+  struct_message send;
+  memset(&send, 0, sizeof(send));
+  if (recieve.message[0] == '\0' && recieve.value == 0.0f) {
     Serial.println("Message passed was null");
   }
 
   if (strncmp(recieve.message, "PULL TEMP", strlen("PULL TEMP")) == 0) {
-    strncpy(send.message, "TEMP", strlen("TEMP"));
+    strncpy(send.message, "TEMP", sizeof(send.message)-1);
+    send.message[sizeof(send.message)-1] = '\0';
     send.value = requestTemp();
-  } else if (strncmp(recieve.message, "PULL HUMID", strlen("PULL HUMID"))) {
-    strncpy(send.message, "HUMID", strlen("HUMID"));
+    send.urgencyLevel = 1;
+  } else if (strncmp(recieve.message, "PULL HUMID", strlen("PULL HUMID")) == 0) {
+    strncpy(send.message, "HUMID", sizeof(send.message)-1);
+    send.message[sizeof(send.message)-1] = '\0';
     send.value = requestHumidity();
-  } else if (strncmp(recieve.message, "GET TYPE", strlen("GET TYPE"))) {
+    send.urgencyLevel = 1;
+  } else if (strncmp(recieve.message, "GET TYPE", strlen("GET TYPE")) == 0) {
     strncpy(send.message, "TYPE ", strlen("TYPE "));
     strncat(send.message, module, strlen(module));
+  } else {
+    Serial.println("String passed was invalid");
   }
   esp_err_t result = esp_now_send(broadcastAddress, (u_int8_t*) &send, sizeof(send));
-  if (result == ESP_OK) {
-    Serial.println("Sent with success");
-  } else {
-    Serial.println("Message failed to send");
-  }
 }
 
 void loop() {
@@ -85,6 +87,13 @@ void onDataSent(const u_int8_t *addr, esp_now_send_status_t status) {
 void onDataRecv(const u_int8_t * adr, const u_int8_t * data, int len) {
   memcpy(&recieve, data, sizeof(recieve));
   parseMsg();
+}
+
+void resetCharArray(char* string, int size) {
+  int i;
+  for (i = 0; i < size; i++) {
+    *(string+i) = '\0';
+  }
 }
 
 

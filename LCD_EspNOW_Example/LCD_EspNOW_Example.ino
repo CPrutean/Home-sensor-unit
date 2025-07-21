@@ -21,7 +21,6 @@ typedef struct struct_message{
 const u_int8_t broadcastAddress[] = {0x3C, 0x8A, 0x1F, 0xD5, 0x44, 0xF8};
 esp_now_peer_info_t peerInfo;
 
-struct_message send;
 struct_message recieve;
 
 
@@ -41,7 +40,7 @@ void setup() {
 
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
   peerInfo.channel = 0;
-  peerInfo.encrypt = true;
+  peerInfo.encrypt = false;
 
   if (esp_now_add_peer(&peerInfo)!= ESP_OK) {
     Serial.println("Failed to add peer");
@@ -53,20 +52,25 @@ void setup() {
 
 
 void onButtonPress() {
-  strncpy(send.message, "PULL TEMP", strlen(send.message));
-  esp_err_t result = esp_now_send(broadcastAddress, (u_int8_t*)&send, sizeof(send));
-  
   lcd.clear();
-  lcd.setCursor(0, 0);
+  struct_message send;
+  memset(&send, 0, sizeof(send));
+  strncpy(send.message, "PULL TEMP", sizeof(send.message)-1);
+  send.message[sizeof(send.message)-1] = '\0';
+  esp_err_t result = esp_now_send(broadcastAddress, (u_int8_t*)&send, sizeof(send));
+  delay(1000);
   lcd.print(recieve.message);
-  lcd.setCursor(strlen(recieve.message), 0);
+  lcd.setCursor(strlen(recieve.message)+1, 0);
   lcd.print(recieve.value);
 
-  lcd.setCursor(0, 1);
-  strncpy(send.message, "PULL HUMID", strlen("PULL HUMID"));
+  memset(&send, 0, sizeof(send));
+  strncpy(send.message, "PULL HUMID", sizeof(send.message)-1);
+  send.message[sizeof(send.message)-1] = '\0';
   result = esp_now_send(broadcastAddress, (u_int8_t*)&send, sizeof(send));
-  
-  lcd.setCursor(strlen(recieve.message), 1);
+  delay(1000);
+  lcd.setCursor(0, 1);
+  lcd.print(recieve.message);
+  lcd.setCursor(strlen(recieve.message)+1, 1);
   lcd.print(recieve.value);
 }
 
@@ -91,4 +95,5 @@ void onDataSent(const u_int8_t *addr, esp_now_send_status_t status) {
 void onDataRecv(const u_int8_t * adr, const u_int8_t * data, int len) {
   memcpy(&recieve, data, sizeof(recieve));
 }
+
 
