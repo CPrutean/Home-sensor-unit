@@ -4,7 +4,7 @@
 #include <string.h>
 #include <DHT.h>
 #define MAX_MSG_LENGTH 32
-enum sensor_type {TEMP_AND_HUMID, GPS, TIME};
+enum sensor_type {TEMP_AND_HUMID, GPS};
 typedef struct _sensor {
     enum sensor_type *modules;
     char available_commands[][16];
