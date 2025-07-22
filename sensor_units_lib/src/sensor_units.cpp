@@ -10,21 +10,18 @@ int return_available_commands(char** array, int len, enum sensor_type sensor) {
     }
     int i;
     int len;
-    switch (sensor) {
-        case(TEMP_AND_HUMID):
-            len = sizeof(temp_sensor_cmds)/sizeof(temp_sensor_cmds[0]);
-            for (i = 0; i < len; i++) {
-                strncpy(*(array+i), temp_sensor_cmds[i], 16);
-            }
-            break;
-        case(GPS):
-            strncpy(*(array), gps_sensor_cmds[0], 16);
-            break;
-        case(TIME):
-            strncpy(*(array), time_sensor_cmds[0], 16);
-            break;
-        default:
-            return -1;
+    if (sensor == TEMP_AND_HUMID) {
+        len = sizeof(temp_sensor_cmds)/sizeof(temp_sensor_cmds[0]);
+        for (i = 0; i < len; i++) {
+            strncpy(*(array+i), temp_sensor_cmds[i], 16);
+        }
+    } else if (sensor == GPS) {
+        len = sizeof(gps_sensor_cmds)/sizeof(gps_sensor_cmds[0]);
+        for (i = 0; i < len; i++) {
+            strncpy(*(array+i), gps_sensor_cmds[i], 16);
+        }
+    } else {
+        return -1;
     }
     return 0;
 }
