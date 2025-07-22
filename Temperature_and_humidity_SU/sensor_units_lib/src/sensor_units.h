@@ -3,15 +3,14 @@
 #include <Arduino.h>
 #include <string.h>
 #include <DHT.h>
-#include <time.h>
 #define MAX_MSG_LENGTH 32
 #define MAX_CMD_LENGTH 16
-enum sensor_type {TEMP_AND_HUMID, GPS, TIME};
+enum sensor_type {TEMP_AND_HUMID, GPS};
 typedef struct _sensor {
     enum sensor_type *modules;
     char available_commands[][16];
     DHT dht();
-} sensor_unit;
+} sensor;
 
 typedef struct def_message_struct {
     char message[MAX_MSG_LENGTH];
@@ -20,13 +19,7 @@ typedef struct def_message_struct {
     unsigned int MSG_ID;
 } def_message_struct;
 
-typedef struct communication_unit {
-    char* SSID;
-    char* pswd;
-
-} communication_unit;
-
 int return_available_commands(char** array, int len, enum sensor_type sensor);
-int handleRequest(enum sensor_type module, char* cmd_passed, def_message_struct *response, sensor_unit CU);
+int handleRequest(enum sensor_type module, char* cmd_passed, def_message_struct *response, sensor CU);
 
 #endif
