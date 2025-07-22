@@ -8,7 +8,7 @@ int return_available_commands(char** array, int len, enum sensor_type sensor) {
     if (len != 16) {
         return -1;
     }
-    int i = 0;
+    int i;
     int len;
     if (sensor == TEMP_AND_HUMID) {
         len = sizeof(temp_sensor_cmds)/sizeof(temp_sensor_cmds[0]);
