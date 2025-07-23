@@ -12,7 +12,7 @@ typedef struct _sensor_unit {
     enum sensor_type modules[3];
     char available_commands[6][16];
     DHT dht_sensor;
-    _sensor_unit(uint8_t pin, uint8_t type) : dht_sensor(pin, type) {
+    _sensor_unit(uint8_t pin, uint8_t type) : dht_sensor(0, 0) {
         int i;
         for (i = 0; i < 3; i++) {
             if (modules[i] == NULL) {

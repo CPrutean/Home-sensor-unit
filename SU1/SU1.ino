@@ -4,9 +4,11 @@
 #include <string.h>
 #include <time.h>
 #include "src/sensor_units_lib/sensor_units.h"
+
+#define PPS_PIN 34
 #define DHTTYPE DHT11
 #define DHTPIN 4
-DHT dht1(DHTPIN, DHTTYPE);
+DHT dht(DHTPIN, DHTTYPE);
 
 //Board address here 
 uint8_t broadcastAddress[] = {0x3C, 0x8A, 0x1F, 0xD3, 0xD6, 0xEC};
@@ -14,15 +16,13 @@ const char* module = "temp_and_humid_SU";
 esp_now_peer_info_t peerInfo;
 def_message_struct recieve;
 
-sensor SU1;
+sensor_unit SU1;
+int num_of_sensors = 2;
 enum sensor_type SU1_MODULES[] = {TEMP_AND_HUMID, GPS};
 
 void setup() {
-  dht1.begin();
-  SU1.modules = &SU1_MODULES[0];
-
+  dht.begin();
   
-
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
 
@@ -33,7 +33,7 @@ void setup() {
 
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
   peerInfo.channel = 0;
-  peerInfo.encrypt = false;
+  peerInfo.encrypt = true;
 
   if (esp_now_add_peer(&peerInfo)!= ESP_OK) {
     Serial.println("Failed to add peer");
