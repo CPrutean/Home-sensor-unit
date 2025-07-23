@@ -26,22 +26,34 @@ int return_available_commands(char** array, int len, enum sensor_type sensor) {
     return 0;
 }
 
-int handleRequest(enum sensor_type module, char* cmd_passed, def_message_struct *response, sensor CU) {
+int handleRequest(enum sensor_type module, char* cmd_passed, def_message_struct *response, sensor_unit SU) {
     memset(response, 0, sizeof(response));
+    if (module == TEMP_AND_HUMID) {
+        handleTempRequests(cmd_passed, response, SU.dht());
+    } else if (module = GPS) {
+
+    } else if (module = TIME) {
+        
+    } else {
+        return -1;
+    }
     return 0;
 }
 
-void handleTempRequests(char* cmd_passed, def_message_struct *response, DHT dht) {
+int handleTempRequests(char* cmd_passed, def_message_struct *response, DHT dht) {
     if (strncmp(cmd_passed, temp_sensor_cmds[0], 16) == 0) {
         strncpy(response->message, "TEMP", 32);
         response->value = dht.readTemperature();
-    } else {
+    } else if (strncmp(cmd_passed, temp_sensor_cmds[1], MAX_CMD_LENGTH)) {
         strncpy(response->message, "HUMID", 32);
         response->value = dht.readHumidity();
+    } else {
+        return -1;
     }
+    return 0;
 }
 
-void handleGpsRequests(char* cmd_passed, def_message_struct *response) {
+int handleGpsRequests(char* cmd_passed, def_message_struct *response) {
     
 }
 

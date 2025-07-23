@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include <string.h>
 #include <time.h>
-#include "sensor_units_lib/src/sensor_units.h"
+#include "src/sensor_units_lib/sensor_units.h"
 #define DHTTYPE DHT11
 #define DHTPIN 4
 DHT dht1(DHTPIN, DHTTYPE);
@@ -20,7 +20,6 @@ enum sensor_type SU1_MODULES[] = {TEMP_AND_HUMID, GPS};
 void setup() {
   dht1.begin();
   SU1.modules = &SU1_MODULES[0];
-  SU1.dht() = dht1();
 
   
 
@@ -58,7 +57,7 @@ void onDataSent(const u_int8_t *addr, esp_now_send_status_t status) {
 void onDataRecv(const u_int8_t * adr, const u_int8_t * data, int len) {
   memset(&recieve, 0, sizeof(recieve));
   memcpy(&recieve, data, sizeof(recieve));
-  
+
 }
 
 
