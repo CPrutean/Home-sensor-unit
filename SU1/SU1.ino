@@ -4,10 +4,16 @@
 #include <string.h>
 #include <time.h>
 #include "src/sensor_units_lib/sensor_units.h"
+#include <HardwareSerial.h>
+#include <TinyGPS++.h>
+
 
 #define PPS_PIN 34
 #define DHTTYPE DHT11
 #define DHTPIN 4
+#define RXPIN 0
+#define TXPIN 1
+
 DHT dht(DHTPIN, DHTTYPE);
 
 //Board address here 

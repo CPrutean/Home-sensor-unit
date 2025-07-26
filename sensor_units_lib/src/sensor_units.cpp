@@ -3,6 +3,8 @@
 const char* temp_sensor_cmds[2] = {"PULL TEMP", "PULL HUMID"};
 const char* gps_sensor_cmds[1] = {"PULL LOCATION"};
 const char* time_sensor_cmds[1] = {"PULL TIME"};
+
+extern HardwareSerial gpsSerial;
 //Pass in an array with unlimited rows and the columns being 16 long
 int return_available_commands(char** array, int len, enum sensor_type sensor) {
     if (len != MAX_CMD_LENGTH) {
@@ -20,7 +22,19 @@ int return_available_commands(char** array, int len, enum sensor_type sensor) {
         for (i = 0; i < len; i++) {
             strncpy(*(array+i), gps_sensor_cmds[i], MAX_CMD_LENGTH);
         }
-    } else if (sensor == TIME) {
+    } else {
+        return -1;
+    }
+    return 0;
+}
+
+int handleRequest(enum sensor_type module, char* cmd_passed, def_message_struct *response, sensor_unit SU) {
+    memset(response, 0, sizeof(response));
+    if (module == TEMP_AND_HUMID) {
+        handleTempRequests(cmd_passed, response, SU);
+    } else if (module = GPS) {
+
+    } else if (module = TIME) {
         
     } else {
         return -1;
@@ -28,32 +42,20 @@ int return_available_commands(char** array, int len, enum sensor_type sensor) {
     return 0;
 }
 
-int handleRequest(char* cmd_passed, def_message_struct *response, sensor_unit SU) {
-    memset(response, 0, sizeof(response));
-    if (!strncmp(cmd_passed, temp_sensor_cmds[0], MAX_CMD_LENGTH) || !strncmp(cmd_passed, temp_sensor_cmds[1], MAX_CMD_LENGTH)) {
-        handleTempRequests(cmd_passed, response, SU.dht());
-    } else if (!strncmp(cmd_passed, gps_sensor_cmds[0], MAX_CMD_LENGTH)) {
-        handleGpsRequests(cmd_passed, response, SU);
-    } else {
-        return -1;
-    }
-    return 0;
-}
-
-int handleTempRequests(char* cmd_passed, def_message_struct *response, DHT dht) {
+int handleTempRequests(char* cmd_passed, def_message_struct *response, sensor_unit SU) {
     if (strncmp(cmd_passed, temp_sensor_cmds[0], 16) == 0) {
         strncpy(response->message, "TEMP", 32);
-        response->value = dht.readTemperature();
+        response->value = SU.dht_sensor.readTemperature();
     } else if (strncmp(cmd_passed, temp_sensor_cmds[1], MAX_CMD_LENGTH)) {
         strncpy(response->message, "HUMID", 32);
-        response->value = dht.readHumidity();
+        response->value = SU.dht_sensor.readHumidity();
     } else {
         return -1;
     }
     return 0;
 }
 
-int handleGpsRequests(char* cmd_passed, def_message_struct *response, sensor_unit SU) {
+int handleGpsRequests(char* cmd_passed, def_message_struct *response) {
     
 }
 
