@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include <string.h>
 #include <time.h>
-#include "src/sensor_units_lib/sensor_units.h"
+#include <sensor_units.h>
 #include <HardwareSerial.h>
 #include <TinyGPS++.h>
 
@@ -15,6 +15,9 @@
 #define TXPIN 1
 
 DHT dht(DHTPIN, DHTTYPE);
+HardwareSerial gpsSerial(RXPIN, TXPIN);
+TinyGPSPlus gps;
+
 
 //Board address here 
 uint8_t broadcastAddress[] = {0x3C, 0x8A, 0x1F, 0xD3, 0xD6, 0xEC};
@@ -26,10 +29,16 @@ sensor_unit SU1;
 int num_of_sensors = 2;
 enum sensor_type SU1_MODULES[] = {TEMP_AND_HUMID, GPS};
 
+
+
 void setup() {
   dht.begin();
-  
+
+
   Serial.begin(115200);
+  gpsSerial.begin(9600);
+  pinMode(PPS_PIN, INPUT);
+
   WiFi.mode(WIFI_STA);
 
   if (esp_now_init() != ESP_OK) {
@@ -47,6 +56,8 @@ void setup() {
   }
   esp_now_register_send_cb(onDataSent);
   esp_now_register_recv_cb(esp_now_recv_cb_t(onDataRecv));
+
+
 }
 
 
@@ -54,6 +65,11 @@ void loop() {
 
 }
 
+void ppsISR() {
+  ppsCount++;
+  lastPpsMillis = millis();
+  ppsDetected = true;
+}
 
 void onDataSent(const u_int8_t *addr, esp_now_send_status_t status) {
   Serial.println("Packet sent");
