@@ -101,6 +101,33 @@
         <mxCell id="w7EPf_Cx7RpyWyVT9lFu-35" value="Implementation:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;The raspberry pi will act as a web end point which will send information to the web application built on top of it and send commands to the sensor units.&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
           <mxGeometry x="959.9" y="-55" width="150" height="150" as="geometry" />
         </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-40" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-37">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1080" y="209.0050000000001" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-37" value="&lt;span style=&quot;&quot;&gt;Camera unit&lt;/span&gt;" style="html=1;verticalLabelPosition=bottom;align=center;labelBackgroundColor=none;verticalAlign=top;strokeWidth=2;strokeColor=#2D7600;shadow=0;dashed=0;shape=mxgraph.ios7.icons.camera;fillColor=none;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="176.06" width="110" height="65.88" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-41" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=-0.018;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-30" target="w7EPf_Cx7RpyWyVT9lFu-37">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-43" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-42">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1255" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-42" value="Behaviour:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Will take a live feed and communicate it directly with the web endpoint&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="1193.75" y="371.25" width="122.5" height="122.5" as="geometry" />
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-45" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="w7EPf_Cx7RpyWyVT9lFu-44">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1255" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="w7EPf_Cx7RpyWyVT9lFu-44" value="Implementation:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;An esp32 cam will feed a stream to a web endpoint which will display a live feed&lt;/div&gt;" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="1187.5" y="-47.5" width="135" height="135" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>

@@ -1,69 +1,33 @@
-#include <DHT.h>
-#include <esp_now.h>
-#include <WiFi.h>
-#include <string.h>
-#include <time.h>
 #include <sensor_units.h>
-#include <HardwareSerial.h>
-#include <TinyGPS++.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
+
+#define DHTTYPE DHT22
+#define DHTPIN 4
 
 #define PPS_PIN 34
-#define DHTTYPE DHT11
-#define DHTPIN 4
 #define RXPIN 0
-#define TXPIN 1
+#define TXPIN 1 
 
 DHT dht(DHTPIN, DHTTYPE);
-HardwareSerial gpsSerial(RXPIN, TXPIN);
+HardwareSerial gpsSerial(2);
 TinyGPSPlus gps;
 
-
-//Board address here 
 uint8_t broadcastAddress[] = {0x3C, 0x8A, 0x1F, 0xD3, 0xD6, 0xEC};
 const char* module = "temp_and_humid_SU";
 esp_now_peer_info_t peerInfo;
-def_message_struct recieve;
-
+//Define both of these in each .ino file
+sensor_unit *sens_unit_ptr;
+communication_unit *com_unit_ptr;
 sensor_unit SU1;
-int num_of_sensors = 2;
-enum sensor_type SU1_MODULES[] = {TEMP_AND_HUMID, GPS};
 
+sensor_type SU1_MODULES[] = {TEMP_AND_HUMID, GPS};
+msg_queue message_queue;
 
-
-void setup() {
-  dht.begin();
-
-
-  Serial.begin(115200);
-  gpsSerial.begin(9600);
-  pinMode(PPS_PIN, INPUT);
-
-  WiFi.mode(WIFI_STA);
-
-  if (esp_now_init() != ESP_OK) {
-    Serial.println("Error initializing espNOW");
-    exit(0);
-  }
-
-  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
-  peerInfo.channel = 0;
-  peerInfo.encrypt = true;
-
-  if (esp_now_add_peer(&peerInfo)!= ESP_OK) {
-    Serial.println("Failed to add peer");
-    exit(0);
-  }
-  esp_now_register_send_cb(onDataSent);
-  esp_now_register_recv_cb(esp_now_recv_cb_t(onDataRecv));
-
-
-}
-
-
-void loop() {
-
-}
+volatile bool ppsDetected = false;
+volatile unsigned long ppsCount = 0;
+volatile unsigned long lastPpsMillis = 0;
 
 void ppsISR() {
   ppsCount++;
@@ -71,18 +35,56 @@ void ppsISR() {
   ppsDetected = true;
 }
 
-void onDataSent(const u_int8_t *addr, esp_now_send_status_t status) {
-  Serial.println("Packet sent");
-  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery success":"Delivery failed");
+void queueHandlerTask(void* pvParamaters) {
+  for (;;) {
+    if (!SU1.queue->isEmpty()) {
+      def_message_struct msg;
+      msg = SU1.queue->getFront();
+
+      def_message_struct response;
+      memset(&response, 0, sizeof(response));
+      response.message[0]  = '\0';
+
+      handleRequestSU(msg.message, &response);
+      SU1.queue->pop();
+    }
+  }
 }
 
-void onDataRecv(const u_int8_t * adr, const u_int8_t * data, int len) {
-  memset(&recieve, 0, sizeof(recieve));
-  memcpy(&recieve, data, sizeof(recieve));
 
+void setup() {
+  dht.begin();
+  Serial.begin(115200);
+  gpsSerial.begin(9600, SERIAL_8N1, RXPIN, TXPIN);
+
+  pinMode(PPS_PIN, INPUT);
+  attachInterrupt(digitalPinToInterrupt(PPS_PIN), ppsISR, RISING);
+  //These need to be declared across all SU and CU libraries
+  sens_unit_ptr = &SU1;
+  com_unit_ptr = nullptr;
+
+  SU1.modules = SU1_MODULES;
+  SU1.moduleCount = 2;
+  SU1.gpsSerial = &gpsSerial;
+  SU1.dht_sensor = &dht;
+  SU1.gps = &gps;
+  SU1.queue = &message_queue;
+  int i;
+  for (i = 0; i < 6; i++) {
+    SU1.CU_ADDR[i] = broadcastAddress[i];
+  }
+
+  init_SU_ESPNOW(sens_unit_ptr, 0);
+
+  xTaskCreatePinnedToCore(queueHandlerTask, "Queue handler task", 8192, NULL, 1, NULL, 1);
 }
 
-
-
-
-
+void loop() {
+  if (ppsDetected) {
+    noInterrupts();
+    ppsDetected = false;
+    unsigned long currentPpsCount = ppsCount;
+    unsigned long currentLastPpsMillis = lastPpsMillis;
+    interrupts();
+  }
+}
