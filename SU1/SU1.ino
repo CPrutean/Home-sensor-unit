@@ -14,7 +14,7 @@ DHT dht(DHTPIN, DHTTYPE);
 HardwareSerial gpsSerial(2);
 TinyGPSPlus gps;
 
-uint8_t broadcastAddress[] = {0x3C, 0x8A, 0x1F, 0xD3, 0xD6, 0xEC};
+uint8_t broadcastAddress[] = {0x08, 0xa6, 0xf7, 0x70, 0x10, 0x04};
 const char* module = "temp_and_humid_SU";
 esp_now_peer_info_t peerInfo;
 //Define both of these in each .ino file
