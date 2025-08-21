@@ -1,56 +1,101 @@
 #include <sensor_units.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#define PI_SERIAL Serial
+#include <freertos/queue.h>
+#define DEBUG 1
 
-uint8_t broadcastAddress[][6] = {0x3c, 0x8a, 0x1f, 0xd5, 0x44, 0xf8};
+const uint8_t broadcastAddress[][6] = {{0x3c, 0x8a, 0x1f, 0xd5, 0x44, 0xf8}};
 uint8_t suCount = 1;
 communication_unit CU1;
 sensor_unit* sens_unit_ptr;
 communication_unit* com_unit_ptr;
-msg_queue messageQueue;
+msg_queue *messageQueue;
+
+void onDataSent(const uint8_t* addr, esp_now_send_status_t status) {
+  #ifdef DEBUG
+  Serial.println("Packet sent");
+  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery success":"Delivery failed");
+  #endif
+}
+
+void onDataRecv(const uint8_t* adr, const uint8_t* data, int len) {
+  #ifdef DEBUG
+  Serial.println("Message recieved");
+  #endif
+  def_message_struct msg;
+  memcpy(&msg, data, sizeof(msg));
+  BaseType_t xHigherPriorityTaskWoken = pdPASS;
+  CU1.queue->send(msg);
+}
+
 
 void queueHandlerTask(void* pvParameters) {
+  def_message_struct msg;
   for (;;) {
-    if (!CU1.queue->isEmpty() && CU1.queue != nullptr) {
-      def_message_struct msg;
-      msg = CU1.queue->getFront();
-
-      def_message_struct response;
-      memset(&response, 0, sizeof(response));
-      response.message[0]  = '\0';
-
-      handleMSG_CU(msg, msg.channel);
-      CU1.queue->pop();
+    if (CU1.queue->receive(msg)) {
+      handleMSG_CU(msg, msg.suInd);
     }
-    if (PI_SERIAL.available()) {
-      String pyStr = PI_SERIAL.readStringUntil('\n');
+  }
+}
+
+
+void serialHandlerTask(void* pvParameters) {
+  for (;;) {
+    if (Serial.available()) {
+      String pyStr = Serial.readStringUntil('\n');
       int len = pyStr.length();
       char cStr[len+1];
       pyStr.toCharArray(cStr, len+1);
       cStr[len] = '\0';
       respondPiRequest(cStr);
     }
+    vTaskDelay(40 / portTICK_PERIOD_MS);
   }
 }
 
+esp_now_peer_info_t peerInfo;
 void setup() {
   // put your setup code here, to run once:
-  CU1.queue = &messageQueue;
+  Serial.begin(115200);
+  messageQueue = new msg_queue();
+  CU1.queue = messageQueue;
+  CU1.numOfSU = 1;
   com_unit_ptr = &CU1;
   sens_unit_ptr = nullptr;
+
+  WiFi.mode(WIFI_STA);
+  if (esp_now_init() != ESP_OK) {
+    #ifdef DEBUG
+    Serial.println("Failed to init exiting");
+    #endif
+    exit(-1);
+  }
   int i;
-  int j;
-  for (i = 0; i < suCount; i++) {
-    for (j = 0; j < 6; j++) {
-      CU1.SU_ADDR[i][j] = broadcastAddress[i][j];
+  for (i = 0; i < CU1.numOfSU; i++) {
+    memcpy(peerInfo.peer_addr, broadcastAddress[i], 6);
+    memcpy(CU1.SU_ADDR[i], broadcastAddress[i], 6);
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+      #ifdef DEBUG
+      Serial.println("Failed to add peer exiting");
+      #endif
+      exit(-1);
     }
   }
-  init_CU_ESPNOW(com_unit_ptr);
-  xTaskCreatePinnedToCore(queueHandlerTask, "Queue Handler Task", 8192, NULL, 1, NULL, 1);
+  esp_now_register_send_cb(onDataSent);
+  esp_now_register_recv_cb(esp_now_recv_cb_t(onDataRecv));
+
+  xTaskCreatePinnedToCore(queueHandlerTask, "Queue Handler Task", 8192, NULL, 2, NULL, 1);
+  xTaskCreatePinnedToCore(serialHandlerTask, "Serial Handler Task", 8192, NULL, 1, NULL, 1);
+  Serial.println("Created tasks");
+  delay(3000);
+
+  initCU(&CU1);
+  delay(3000);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  // respondPiRequest("PULL|ALL|");
+  // delay(5000);
 }
