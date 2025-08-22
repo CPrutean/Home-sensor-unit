@@ -2,7 +2,8 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/queue.h>
-#define DEBUG 1
+//Define when youre trying to debug issues to trace through the stack while running this in the serial monitor otherwise this sends junk information to the raspberry pi
+//#define DEBUG 1
 
 const uint8_t broadcastAddress[][6] = {{0x3c, 0x8a, 0x1f, 0xd5, 0x44, 0xf8}};
 uint8_t suCount = 1;
@@ -24,6 +25,7 @@ void onDataRecv(const uint8_t* adr, const uint8_t* data, int len) {
   #endif
   def_message_struct msg;
   memcpy(&msg, data, sizeof(msg));
+  memcpy(&msg.senderMac, data, 6);
   BaseType_t xHigherPriorityTaskWoken = pdPASS;
   CU1.queue->send(msg);
 }
@@ -33,7 +35,7 @@ void queueHandlerTask(void* pvParameters) {
   def_message_struct msg;
   for (;;) {
     if (CU1.queue->receive(msg)) {
-      handleMSG_CU(msg, msg.suInd);
+      handleMSG_CU(msg);
     }
   }
 }
@@ -89,13 +91,9 @@ void setup() {
   xTaskCreatePinnedToCore(queueHandlerTask, "Queue Handler Task", 8192, NULL, 2, NULL, 1);
   xTaskCreatePinnedToCore(serialHandlerTask, "Serial Handler Task", 8192, NULL, 1, NULL, 1);
   Serial.println("Created tasks");
-  delay(3000);
-
-  initCU(&CU1);
-  delay(3000);
 }
 
 void loop() {
-  // respondPiRequest("PULL|ALL|");
-  // delay(5000);
+  respondPiRequest("INIT|PI|");
+  delay(5000);
 }
