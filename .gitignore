@@ -2,3 +2,5 @@ sensor_units_lib/.vscode/
 .vscode/
 *.txt
 .idea/
+*.json
+*.log
