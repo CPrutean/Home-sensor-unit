@@ -2,10 +2,10 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/queue.h>
-//Define when youre trying to debug issues to trace through the stack while running this in the serial monitor otherwise this sends junk information to the raspberry pi
-//#define DEBUG 1
 
-const uint8_t broadcastAddress[][6] = {{0x3c, 0x8a, 0x1f, 0xd5, 0x44, 0xf8}};
+
+
+uint8_t broadcastAddress[][6] = {{0x00, 0x4b, 0x12, 0x3e, 0x87, 0x64}};
 uint8_t suCount = 1;
 communication_unit CU1;
 sensor_unit* sens_unit_ptr;
@@ -90,10 +90,9 @@ void setup() {
 
   xTaskCreatePinnedToCore(queueHandlerTask, "Queue Handler Task", 8192, NULL, 2, NULL, 1);
   xTaskCreatePinnedToCore(serialHandlerTask, "Serial Handler Task", 8192, NULL, 1, NULL, 1);
-  Serial.println("Created tasks");
 }
 
 void loop() {
-  respondPiRequest("INIT|PI|");
+  respondPiRequest("PULL|ALL|");
   delay(5000);
 }

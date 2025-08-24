@@ -10,7 +10,8 @@
 #define PPS_PIN 34
 #define RXPIN 16
 #define TXPIN 17
-#define DEBUG 1
+//Define this when you are monitoring serial output
+//#define DEBUG 1
 
 
 DHT dht(DHTPIN, DHTTYPE);
