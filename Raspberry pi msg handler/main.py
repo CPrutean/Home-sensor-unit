@@ -10,8 +10,8 @@ status = ["ONLINE", "ERROR", "OFFLINE"]
 available_sensors = []
 
 #constant cuID and suID for initializing communication units and sensor units
-cuID = 0
-suID = 0
+cuID = 1000
+suID = 1000
 
 
 # --- Configuration ---
@@ -54,15 +54,17 @@ class SensorUnit:
 
 
 class CommunicationUnit:
+    name = ""
     sens_units = []
     id = 0
-    def __init__(self, sens_units):
+    def __init__(self, sens_units, name = "Communication Unit"):
         if any(sens_units) != type(SensorUnit):
             raise Exception("Invalid sensor unit type.")
         else :
             self.sens_units = sens_units
             global cuID
             self.id = cuID
+            self.name = name
             cuID+=1
 
 
@@ -77,11 +79,7 @@ def handle_msg(msg):
     #SENSOR|SENSOR_NAME|Commands,Seperated,By,Commas|Responses,Seperated,By,Commas|
     #This will list out the available requests that we can send to the sensors
     if msg_keywords[0] == "SENSOR":
-        cmds = msg_keywords[2].split(CMD_SEPER)
-        responses = msg_keywords[3].split(CMD_SEPER)
-        sensor = Sensors(keywords[1], cmds, responses)
-        available_sensors.append(sensor)
-        json_obj = {"name":msg_keywords[1], "cmds":cmds, "responses":responses}
+        json_obj = return_sensor_jsonobj(msg_keywords)
         add_to_json("api.JSON", "sensors", json_obj)
     elif msg_keywords[0:5] == "Status":
         #Every message sent to a sensor unit will end with the index of the sensor unit that it is connected to.
@@ -92,30 +90,13 @@ def handle_msg(msg):
         #currently hardcoded 0 since there is only one communication unit
         Communication_units[0].sens_units[index].status = keywords[2]
         Communication_units[0].sens_units[index].error_code = error_value
-        name_list = []
-
-        for sensors in Communication_units[0].sens_units[index].sensors:
-            name_list.append(sensors.name)
-        json_obj = {"name":Communication_units[0].sens_units[index].name,
-                    "status": msg_keywords[1],
-                    "error_code":error_value,
-                    "sensors":name_list,
-                    "id":Communication_units[0].sens_units[index].id}
+        json_obj = return_su_json_obj(index)
         add_to_json("api.JSON", "sensor_units", json_obj, overwrite = True)
+
     elif msg_keywords[0] == "Name":
         index = int(msg_keywords[-1])
-
-        name_list = []
-        for sensors in Communication_units[0].sens_units[index].sensors:
-            name_list.append(sensors.name)
-
-        Communication_units[0].sens_units[index].name = keywords[1]
-
-        json_obj = {"name": Communication_units[0].sens_units[index].name,
-                    "status": msg_keywords[1],
-                    "error_code": Communication_units[0].sens_units[index].error_code,
-                    "sensors": name_list,
-                    "id": Communication_units[0].sens_units[index].id}
+        Communication_units[0].sens_units[index].name = msg_keywords[1]
+        json_obj = return_su_json_obj(index)
         add_to_json("api.JSON", "sensor_units", json_obj, overwrite = True)
     elif keywords[0] == "Sens units":
         index = int(msg_keywords[-1])
@@ -126,57 +107,111 @@ def handle_msg(msg):
                 if item == sensor.name:
                     Sensor_units[index].sensors.append(sensor)
                     break
-        name_list = []
-        for sensors in Communication_units[0].sens_units[index].sensors:
-            name_list.append(sensors.name)
-
-        json_obj = {"name": Communication_units[0].sens_units[index].name,
-                    "status": msg_keywords[1],
-                    "error_code": Communication_units[0].sens_units[index].error_code,
-                    "sensors": name_list,
-                    "id": Communication_units[0].sens_units[index].id}
+        json_obj = return_su_json_obj(index)
         add_to_json("api.JSON", "sensor_units", json_obj, overwrite = True)
-
     elif keywords[0] == "NUM_OF_SU":
         num_of_sens_units = int(msg_keywords[-1])
         for i in range(num_of_sens_units):
-            Communication_units[0].sens_units.append(SensorUnit([], []))
-
+            Communication_units[0].sens_units.append(SensorUnit("", []))
     else:
         ind = int(msg_keywords[-1])
         #What we do is we take the first word of the response and compare it against the other responses to find where in the api.JSON
         #file we should place the response.
         #We also log the message recieved into a log file for future reference.
         for sensor in Communication_units[0].sens_units[ind].sensors:
-            for responses in sensor.responses:
-                if msg_keywords[0] == responses:
-                    json_object = {msg_keywords[0]: float(msg_keywords[1])}
-                    add_to_json("api.JSON", Communication_units[0].sens_units[ind].name, json_object)
+            for response in sensor.responses:
+                if msg_keywords[0] == response:
+                    json_object = return_sensor_reading_json_obj(ind, response, msg_keywords[1:-1], sensor.name)
+                    add_to_json("api.JSON", "readings", json_object, overwrite = True)
+                    break
+
     #Always log messages recieved
     with open("logs.txt", "a") as f:
         f.write(f"{datetime.datetime.now()}: {msg}\n")
     return msg_keywords[-1]
 
-
+#TODO implement race condition handling for multiple python processes trying to access the same file
+#filepath should be a string that specifies the path to the file we are trying to access
 #Target object should contain a string that specifies whether we are adding to senors, sensor_units, or communication_units
 #new_object should contain a json object to append to the target object
 def add_to_json(filepath, target_object, new_object, overwrite = False):
+    lock = threading.Lock()
+    lock.acquire()
     try:
         with open(filepath, "r") as f:
             data = json.load(f)
         if not isinstance(data, dict):
             print("Error: JSON file must contain a list of objects.")
         else:
-            if overwrite:
-
+            if overwrite and target_object != "readings":
+                for entry in data[target_object]:
+                    if entry[id] == new_object[id]:
+                        data[target_object].remove(entry)
+                        data.update(new_object)
+                        break
+            elif overwrite and target_object == "readings":
+                for entry in data[target_object]:
+                    if entry["id"] == new_object["id"] and entry["response"] == new_object["response"]:
+                        data[target_object].remove(entry)
+                        data.update(new_object)
+                        break
             else:
-                data[target_object].append(new_object)
+                data[target_object].update(new_object)
     except FileNotFoundError:
         data = {}
     except e as Exception:
         print(f"Error loading JSON file: {e}")
         return
+    finally:
+        lock.release()
 
+#returns the proper format for sensors, sensor units, and communication units
+
+#Returns a json object with the current state of the sensor unit with the provided index
+def return_su_json_obj(index):
+    if (index < 0) or (index >= len(Communication_units[0].sens_units)):
+        return {}
+    global Communication_units
+    sens_name_list = []
+    for sensor_unit in Communication_units[0].sens_units:
+        sens_name_list.append(sensor_unit.name)
+    #
+    return_val = {Communication_units[0].sens_units[index].id:{
+        "name":Communication_units[0].sens_units[index].name,
+        "sensors":sens_name_list,
+        "status":Communication_units[0].sens_units[index].status,
+        "error_code":Communication_units[0].sens_units[index].error_code,
+        "readings":[]
+    }}
+    for response in Communication_units[0].sens_units[index].responses:
+        return_val[Communication_units[0].sens_units[index].id]["readings"].append({response:0.0})
+    return return_val
+
+def return_cu_json_obj(index = 0):
+    #currently the index is hardcoded to 0 since there is only one communication unit more to be added in the future
+    json_obj = {Communication_units[0].id:{
+        "name":Communication_units[0].name,
+        "sensor_units":[]
+    }}
+    for sensor_unit in Communication_units[0].sens_units:
+        json_obj["sensor_units"].append(sensor_unit.id)
+    return json_obj
+
+def return_sensor_jsonobj(msg_keywords):
+    if type(msg_keywords) != list:
+        return {}
+    cmds = msg_keywords[1].split(CMD_SEPER)
+    responses = msg_keywords[2].split(CMD_SEPER)
+    json_obj = {"name":msg_keywords[0], "cmds":cmds, "responses":responses}
+    return json_obj
+
+#Return the sensor reading with the id of the sensor unit that it is connected to
+def return_sensor_reading_json_obj(index, response, reading, sensor_name = ""):
+    return {
+        response:reading,
+        "sensor":sensor_name,
+        "id":Communication_units[0].sens_units[index].id
+    }
 
 
 
