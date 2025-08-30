@@ -26,6 +26,7 @@ VAL_SEPER = '|'
 CMD_SEPER = ','
 initCU = "init|PI|\n"
 
+
 #Currently this script is only meant to handle one communication unit at a time. in the future further communication units can be expanded on by creating
 #multiple serial objects with a list of serial ports
 
@@ -136,9 +137,13 @@ def handle_msg(msg):
 #filepath should be a string that specifies the path to the file we are trying to access
 #Target object should contain a string that specifies whether we are adding to senors, sensor_units, or communication_units
 #new_object should contain a json object to append to the target object
-def add_to_json(filepath, target_object, new_object, overwrite = False):
-    lock = threading.Lock()
-    lock.acquire()
+def add_to_json(filepath, target_object, new_object, overwrite = False, lock_main = None):
+    if lock == None:
+        print("Lock wasnt specified ")
+        return {}
+    global lock
+    lock_main = lock
+    lock_main.acquire()
     try:
         with open(filepath, "r") as f:
             data = json.load(f)
@@ -165,7 +170,7 @@ def add_to_json(filepath, target_object, new_object, overwrite = False):
         print(f"Error loading JSON file: {e}")
         return
     finally:
-        lock.release()
+        lock_main.release()
 
 #returns the proper format for sensors, sensor units, and communication units
 
@@ -183,10 +188,7 @@ def return_su_json_obj(index):
         "sensors":sens_name_list,
         "status":Communication_units[0].sens_units[index].status,
         "error_code":Communication_units[0].sens_units[index].error_code,
-        "readings":[]
     }}
-    for response in Communication_units[0].sens_units[index].responses:
-        return_val[Communication_units[0].sens_units[index].id]["readings"].append({response:0.0})
     return return_val
 
 def return_cu_json_obj(index = 0):
@@ -236,7 +238,7 @@ if __name__ == "__main__":
     print("Start monitoring serial port:")
 
     ser = None
-
+    json_lock = threading.Lock()
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
         ser.flush()  # Clear any old data in the buffers.
@@ -246,13 +248,18 @@ if __name__ == "__main__":
 
     reader_thread = threading.Thread(target=serial_read, args=(ser, serial_queue))
     reader_thread.start()
+    api_thread = threading.Thread(target=api.main_api_thread, args=(json_lock, ))
+    api_thread.start()
 
     try:
         while True:
-            buffer_chunk = serial_queue.get() #include here data handling method
+            buffer_chunk = serial_queue.get()
+            handle_msg(buffer_chunk)
     except KeyboardInterrupt:
         print("\nProgram interrupted by user. Exiting.")
     finally:
         if ser and ser.is_open:
             ser.close()
             print("Serial port closed.")
+            reader_thread.join()
+            api_thread.join()
