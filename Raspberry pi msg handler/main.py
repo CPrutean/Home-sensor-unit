@@ -76,7 +76,7 @@ Communication_units = [CommunicationUnit(Sensor_units)]
 
 
 keywords = ["SENSOR", "Status", "Name", "Sens units", "NUM_OF_SU"]
-def handle_msg(msg):
+def handle_msg(msg, lock):
     msg_keywords = msg.split(CMD_SEPER)
     #When initializing a sensor type the structure of the request will come in as so
     #SENSOR|SENSOR_NAME|Commands,Seperated,By,Commas|Responses,Seperated,By,Commas|
@@ -138,11 +138,10 @@ def handle_msg(msg):
 #Target object should contain a string that specifies whether we are adding to senors, sensor_units, or communication_units
 #new_object should contain a json object to append to the target object
 def add_to_json(filepath, target_object, new_object, overwrite = False, lock_main = None):
-    if lock == None:
+    if lock_main is None:
         print("Lock wasnt specified ")
         return {}
-    global lock
-    lock_main = lock
+
     lock_main.acquire()
     try:
         with open(filepath, "r") as f:
@@ -254,7 +253,7 @@ if __name__ == "__main__":
     try:
         while True:
             buffer_chunk = serial_queue.get()
-            handle_msg(buffer_chunk)
+            handle_msg(buffer_chunk, json_lock)
     except KeyboardInterrupt:
         print("\nProgram interrupted by user. Exiting.")
     finally:
