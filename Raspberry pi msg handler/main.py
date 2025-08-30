@@ -5,6 +5,8 @@ import time
 import datetime
 import json
 import os
+import api
+from flask import Flask, request, jsonify
 
 status = ["ONLINE", "ERROR", "OFFLINE"]
 available_sensors = []
@@ -212,7 +214,6 @@ def return_sensor_reading_json_obj(index, response, reading, sensor_name = ""):
         "sensor":sensor_name,
         "id":Communication_units[0].sens_units[index].id
     }
-
 
 
 def serial_read(ser_port, queue):
