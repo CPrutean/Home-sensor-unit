@@ -4,8 +4,8 @@ import json
 path = "api.JSON"
 
 #TODO implement race conditions for value retrieval
-def main_api_thread(lock):
-    if (type(lock) != threading.Lock):
+def main_api_thread(lock, ser_port = None):
+    if not isinstance(lock, threading.Lock):
         raise Exception("Invalid lock type passed into main_api_thread")
     elif lock == None:
         raise Exception("Lock wasnt specified")
@@ -130,3 +130,20 @@ def main_api_thread(lock):
             return {"error":"Invalid JSON"}
         else:
             return jsonify(data["communication_units"])
+    #TODO implement sending push commands to sensor units
+    @app.route('/sensor_units/<sens_unit_id>/send_command/<command>')
+    def send_push(command, sens_unit_id):
+        if ser_port is None:
+            return {"success":False}
+        lock.acquire()
+        with open(path, "r") as f:
+            data = json.load(f)
+        lock.release()
+        for sensor in data["sensors"]:
+            for cmd in sensor["commands"]:
+                if command[0:3] == "PUSH":
+                    continue
+                elif cmd == command:
+                    ser_port.write(command.encode('utf-8'))
+                    return {"success":True}
+        return {"success":False}

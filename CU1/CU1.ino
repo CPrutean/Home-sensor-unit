@@ -93,6 +93,5 @@ void setup() {
 }
 
 void loop() {
-  respondPiRequest("PULL|ALL|");
-  delay(5000);
+  
 }
