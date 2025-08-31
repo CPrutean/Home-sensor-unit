@@ -24,7 +24,7 @@ serial_queue = queue.Queue()
 LINE_END = '|\n'
 VAL_SEPER = '|'
 CMD_SEPER = ','
-initCU = "init|PI|\n"
+initCU = "INIT|PI|\n"
 
 
 #Currently this script is only meant to handle one communication unit at a time. in the future further communication units can be expanded on by creating
@@ -46,9 +46,12 @@ class SensorUnit:
     error_code = ""
     id = 0
     def __init__(self, name, sensors):
-        if any(sensors) != type(Sensors):
+        if not isinstance(sensors, list):
             raise Exception("Invalid type passed into sensor array")
         else:
+            for sensor in sensors:
+                if not isinstance(sensor, Sensors):
+                    raise Exception("Invalid sensor type.")
             self.name = name
             self.sensors = sensors
             global suID
@@ -61,9 +64,12 @@ class CommunicationUnit:
     sens_units = []
     id = 0
     def __init__(self, sens_units, name = "Communication Unit"):
-        if any(sens_units) != type(SensorUnit):
-            raise Exception("Invalid sensor unit type.")
+        if not isinstance(sens_units, list):
+            raise Exception("Invalid type passed wasn't a list")
         else :
+            for sensor_unit in sens_units:
+                if not isinstance(sensor_unit, SensorUnit):
+                    raise Exception("Invalid sensor unit type.")
             self.sens_units = sens_units
             global cuID
             self.id = cuID
@@ -71,13 +77,19 @@ class CommunicationUnit:
             cuID+=1
 
 
-Sensor_units = []
-Communication_units = [CommunicationUnit(Sensor_units)]
+Sensor_units:list = []
+Communication_units:list = [CommunicationUnit(Sensor_units)]
 
 
 keywords = ["SENSOR", "Status", "Name", "Sens units", "NUM_OF_SU"]
 def handle_msg(msg, lock):
     msg_keywords = msg.split(CMD_SEPER)
+    if len(msg_keywords) < 2:
+        print("Invalid message recieved")
+        with open("logs.txt", "a") as f:
+            f.write(f"{datetime.datetime.now()}: {msg}\n")
+        return
+
     #When initializing a sensor type the structure of the request will come in as so
     #SENSOR|SENSOR_NAME|Commands,Seperated,By,Commas|Responses,Seperated,By,Commas|
     #This will list out the available requests that we can send to the sensors
@@ -175,9 +187,9 @@ def add_to_json(filepath, target_object, new_object, overwrite = False, lock_mai
 
 #Returns a json object with the current state of the sensor unit with the provided index
 def return_su_json_obj(index):
+    global Communication_units
     if (index < 0) or (index >= len(Communication_units[0].sens_units)):
         return {}
-    global Communication_units
     sens_name_list = []
     for sensor_unit in Communication_units[0].sens_units:
         sens_name_list.append(sensor_unit.name)
@@ -221,7 +233,7 @@ def serial_read(ser_port, queue):
     print("Starting serial read thread. press ctrl+c to exit.")
     while True:
         try:
-            read_data = ser_port.read(1).decode('UTF-8') + ser_port.read(ser_port.in_waiting).decode('UTF-8')
+            read_data = ser_port.read(size=1).decode('utf-8') + ser_port.read(ser_port.in_waiting).decode('utf-8')
             if read_data:
                 queue.put(read_data)
         except serial.SerialException as e:
@@ -240,14 +252,15 @@ if __name__ == "__main__":
     json_lock = threading.Lock()
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
-        ser.flush()  # Clear any old data in the buffers.
+        ser.flush()
+        ser.write(initCU.encode('utf-8'))
     except serial.SerialException as e:
         print(f"Serial Error: {e}")
         print(f"Check that a device is connected to {SERIAL_PORT} and that the port is correct.")
 
     reader_thread = threading.Thread(target=serial_read, args=(ser, serial_queue))
     reader_thread.start()
-    api_thread = threading.Thread(target=api.main_api_thread, args=(json_lock, ))
+    api_thread = threading.Thread(target=api.main_api_thread, args=(json_lock, ser))
     api_thread.start()
 
     try:
