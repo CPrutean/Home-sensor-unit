@@ -84,6 +84,9 @@ Communication_units:list = [CommunicationUnit(Sensor_units)]
 keywords = ["SENSOR", "Status", "Name", "Sens units", "NUM_OF_SU"]
 def handle_msg(msg, lock):
     msg_keywords = msg.split(VAL_SEPER)
+    if not isinstance(lock, threading.Lock):
+        raise Exception("Lock wasnt specified")
+
     if len(msg_keywords) < 2:
         print("Invalid message recieved")
         with open("logs.txt", "a") as f:
@@ -150,11 +153,9 @@ def handle_msg(msg, lock):
 #filepath should be a string that specifies the path to the file we are trying to access
 #Target object should contain a string that specifies whether we are adding to senors, sensor_units, or communication_units
 #new_object should contain a json object to append to the target object
-def add_to_json(filepath, target_object, new_object, overwrite = False, lock_main = None):
-    if lock_main is None:
-        print("Lock wasnt specified ")
-        return {}
-
+def add_to_json(filepath, target_object, new_object, overwrite = False, lock_main = None, attempts = 0):
+    if not isinstance(lock_main, threading.Lock):
+        raise Exception("Lock was the wrong type")
     lock_main.acquire()
     try:
         with open(filepath, "r") as f:
@@ -177,6 +178,8 @@ def add_to_json(filepath, target_object, new_object, overwrite = False, lock_mai
             else:
                 data[target_object].update(new_object)
     except FileNotFoundError:
+        print("file wasnt found, creating new file")
+
         data = {}
     except e as Exception:
         print(f"Error loading JSON file: {e}")
@@ -252,6 +255,11 @@ if __name__ == "__main__":
 
     ser = None
     json_lock = threading.Lock()
+    if not isinstance(json_lock, threading.Lock):
+        raise Exception("Lock failed in main thread")
+    else:
+        print("Lock successfully created in main thread.")
+
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
         ser.flush()

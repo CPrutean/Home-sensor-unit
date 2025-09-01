@@ -5,10 +5,10 @@ path = "api.JSON"
 
 #TODO implement race conditions for value retrieval
 def main_api_thread(lock, ser_port = None):
-    if type(lock) != type(threading.Lock()):
-        raise Exception("Invalid lock type passed into main_api_thread")
-    elif lock is None:
+    if lock is None:
         raise Exception("Lock wasnt specified")
+    elif type(lock) != type(threading.Lock()):
+        raise Exception("Lock was the wrong type")
     app=Flask(__name__)
     @app.route('/')
     def return_all():
