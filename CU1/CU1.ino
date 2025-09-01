@@ -90,6 +90,8 @@ void setup() {
 
   xTaskCreatePinnedToCore(queueHandlerTask, "Queue Handler Task", 8192, NULL, 2, NULL, 1);
   xTaskCreatePinnedToCore(serialHandlerTask, "Serial Handler Task", 8192, NULL, 1, NULL, 1);
+  // Serial.println("INIT|PI| command passed");
+  // respondPiRequest("INIT|PI|");
 }
 
 void loop() {

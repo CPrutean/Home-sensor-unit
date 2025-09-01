@@ -83,10 +83,11 @@ Communication_units:list = [CommunicationUnit(Sensor_units)]
 
 keywords = ["SENSOR", "Status", "Name", "Sens units", "NUM_OF_SU"]
 def handle_msg(msg, lock):
-    msg_keywords = msg.split(CMD_SEPER)
+    msg_keywords = msg.split(VAL_SEPER)
     if len(msg_keywords) < 2:
         print("Invalid message recieved")
         with open("logs.txt", "a") as f:
+            f.write(f"Error message:\n");
             f.write(f"{datetime.datetime.now()}: {msg}\n")
         return
 
@@ -95,25 +96,25 @@ def handle_msg(msg, lock):
     #This will list out the available requests that we can send to the sensors
     if msg_keywords[0] == "SENSOR":
         json_obj = return_sensor_jsonobj(msg_keywords)
-        add_to_json("api.JSON", "sensors", json_obj)
-    elif msg_keywords[0:5] == "Status":
+        add_to_json("api.json", "sensors", json_obj)
+    elif msg_keywords[0][0:5] == "Status":
         #Every message sent to a sensor unit will end with the index of the sensor unit that it is connected to.
-        index = int(keywords[-1])
+        index = int(msg_keywords[-1])
         error_value = msg_keywords[0].split(" ")
         error_value = error_value[1]
 
         #currently hardcoded 0 since there is only one communication unit
-        Communication_units[0].sens_units[index].status = keywords[2]
+        Communication_units[0].sens_units[index].status = msg_keywords[2]
         Communication_units[0].sens_units[index].error_code = error_value
         json_obj = return_su_json_obj(index)
-        add_to_json("api.JSON", "sensor_units", json_obj, overwrite = True)
+        add_to_json("api.json", "sensor_units", json_obj, overwrite = True, lock_main = lock)
 
     elif msg_keywords[0] == "Name":
         index = int(msg_keywords[-1])
         Communication_units[0].sens_units[index].name = msg_keywords[1]
         json_obj = return_su_json_obj(index)
-        add_to_json("api.JSON", "sensor_units", json_obj, overwrite = True)
-    elif keywords[0] == "Sens units":
+        add_to_json("api.json", "sensor_units", json_obj, overwrite = True, lock_main = lock)
+    elif msg_keywords[0] == "Sens units":
         index = int(msg_keywords[-1])
         #The request will come with the names so in this case we will assume that the list of sensors is always succesfully initialized
         #and we will just add the names to the sensor unit
@@ -123,8 +124,8 @@ def handle_msg(msg, lock):
                     Sensor_units[index].sensors.append(sensor)
                     break
         json_obj = return_su_json_obj(index)
-        add_to_json("api.JSON", "sensor_units", json_obj, overwrite = True)
-    elif keywords[0] == "NUM_OF_SU":
+        add_to_json("api.json", "sensor_units", json_obj, overwrite = True, lock_main = lock)
+    elif msg_keywords[0] == "NUM_OF_SU":
         num_of_sens_units = int(msg_keywords[-1])
         for i in range(num_of_sens_units):
             Communication_units[0].sens_units.append(SensorUnit("", []))
@@ -137,7 +138,7 @@ def handle_msg(msg, lock):
             for response in sensor.responses:
                 if msg_keywords[0] == response:
                     json_object = return_sensor_reading_json_obj(ind, response, msg_keywords[1:-1], sensor.name)
-                    add_to_json("api.JSON", "readings", json_object, overwrite = True)
+                    add_to_json("api.json", "readings", json_object, overwrite = True, lock_main = lock)
                     break
 
     #Always log messages recieved
@@ -215,9 +216,9 @@ def return_cu_json_obj(index = 0):
 def return_sensor_jsonobj(msg_keywords):
     if type(msg_keywords) != list:
         return {}
-    cmds = msg_keywords[1].split(CMD_SEPER)
-    responses = msg_keywords[2].split(CMD_SEPER)
-    json_obj = {"name":msg_keywords[0], "cmds":cmds, "responses":responses}
+    cmds = msg_keywords[2].split(CMD_SEPER)
+    responses = msg_keywords[3].split(CMD_SEPER)
+    json_obj = {"name":msg_keywords[1], "cmds":cmds, "responses":responses}
     return json_obj
 
 #Return the sensor reading with the id of the sensor unit that it is connected to
@@ -233,9 +234,10 @@ def serial_read(ser_port, queue):
     print("Starting serial read thread. press ctrl+c to exit.")
     while True:
         try:
-            read_data = ser_port.read(size=1).decode('utf-8') + ser_port.read(ser_port.in_waiting).decode('utf-8')
-            if read_data:
-                queue.put(read_data)
+            if ser_port.in_waiting > 0:
+                buffer_chunk = ser_port.readline().decode('utf-8').strip()
+                print("MESSAGE RECIEVED:" + buffer_chunk)
+                queue.put(buffer_chunk)
         except serial.SerialException as e:
             print(f"Serial Error: {e}")
             break
@@ -244,7 +246,7 @@ def serial_read(ser_port, queue):
     print("Serial read thread terminated.")
 
 
-
+threads = []
 if __name__ == "__main__":
     print("Start monitoring serial port:")
 
@@ -258,10 +260,13 @@ if __name__ == "__main__":
         print(f"Serial Error: {e}")
         print(f"Check that a device is connected to {SERIAL_PORT} and that the port is correct.")
 
-    reader_thread = threading.Thread(target=serial_read, args=(ser, serial_queue))
+    reader_thread = threading.Thread(target=serial_read, args=(ser, serial_queue, ))
     reader_thread.start()
-    api_thread = threading.Thread(target=api.main_api_thread, args=(json_lock, ser))
+    threads.append(reader_thread)
+
+    api_thread = threading.Thread(target=api.main_api_thread, args=(json_lock, ser, ))
     api_thread.start()
+    threads.append(api_thread)
 
     try:
         while True:
@@ -273,5 +278,6 @@ if __name__ == "__main__":
         if ser and ser.is_open:
             ser.close()
             print("Serial port closed.")
-            reader_thread.join()
-            api_thread.join()
+            for thread in threads:
+                thread.join()
+                thread.close()
