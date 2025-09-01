@@ -1,12 +1,11 @@
 import serial
 import threading
 import queue
-import time
 import datetime
 import json
-import os
 import api
-from flask import Flask, request, jsonify
+import time
+import os
 
 status = ["ONLINE", "ERROR", "OFFLINE"]
 available_sensors = []
@@ -82,10 +81,15 @@ Communication_units:list = [CommunicationUnit(Sensor_units)]
 
 
 keywords = ["SENSOR", "Status", "Name", "Sens units", "NUM_OF_SU"]
-def handle_msg(msg, lock):
+def handle_msg(msg, lock=None):
     msg_keywords = msg.split(VAL_SEPER)
-    if not isinstance(lock, threading.Lock):
-        raise Exception("Lock wasnt specified")
+    if type(lock) != type(threading.Lock()):
+        raise Exception("Lock wasnt initialized as a threading.Lock")
+
+    # Always log messages recieved
+    with open("logs.txt", "a") as f:
+        f.write(f"{datetime.datetime.now()}: {msg}\n")
+        f.close()
 
     if len(msg_keywords) < 2:
         print("Invalid message recieved")
@@ -99,7 +103,7 @@ def handle_msg(msg, lock):
     #This will list out the available requests that we can send to the sensors
     if msg_keywords[0] == "SENSOR":
         json_obj = return_sensor_jsonobj(msg_keywords)
-        add_to_json("api.json", "sensors", json_obj)
+        add_to_json("api.json", "sensors", json_obj, lock_main = lock)
     elif msg_keywords[0][0:5] == "Status":
         #Every message sent to a sensor unit will end with the index of the sensor unit that it is connected to.
         index = int(msg_keywords[-1])
@@ -144,48 +148,63 @@ def handle_msg(msg, lock):
                     add_to_json("api.json", "readings", json_object, overwrite = True, lock_main = lock)
                     break
 
-    #Always log messages recieved
-    with open("logs.txt", "a") as f:
-        f.write(f"{datetime.datetime.now()}: {msg}\n")
-    return msg_keywords[-1]
 
 #TODO implement race condition handling for multiple python processes trying to access the same file
 #filepath should be a string that specifies the path to the file we are trying to access
 #Target object should contain a string that specifies whether we are adding to senors, sensor_units, or communication_units
 #new_object should contain a json object to append to the target object
-def add_to_json(filepath, target_object, new_object, overwrite = False, lock_main = None, attempts = 0):
-    if not isinstance(lock_main, threading.Lock):
-        raise Exception("Lock was the wrong type")
+def add_to_json(filepath, target_object, new_object, overwrite = False, lock_main = None):
+    if type(lock_main) != type(threading.Lock()):
+        print("Lock in add_to_json wasnt specified")
+        exit(-1)
+
     lock_main.acquire()
     try:
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        if not isinstance(data, dict):
-            print("Error: JSON file must contain a list of objects.")
+        # Step 1: Read existing data or initialize if file doesn't exist.
+        if os.path.exists(filepath):
+            with open(filepath, "r") as f:
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    # Handle cases where the file is empty or malformed
+                    data = {}
         else:
-            if overwrite and target_object != "readings":
-                for entry in data[target_object]:
-                    if entry[id] == new_object[id]:
-                        data[target_object].remove(entry)
-                        data.update(new_object)
-                        break
-            elif overwrite and target_object == "readings":
-                for entry in data[target_object]:
-                    if entry["id"] == new_object["id"] and entry["response"] == new_object["response"]:
-                        data[target_object].remove(entry)
-                        data.update(new_object)
-                        break
-            else:
-                data[target_object].update(new_object)
-    except FileNotFoundError:
-        print("file wasnt found, creating new file")
+            # If the file doesn't exist, start with an empty dictionary.
+            data = {}
 
-        data = {}
-    except e as Exception:
-        print(f"Error loading JSON file: {e}")
-        return
+        # Ensure the top-level structure is a dictionary
+        if not isinstance(data, dict):
+            print(f"Error: JSON file at {filepath} must contain a dictionary.")
+            return
+
+        # Ensure the target key exists and is a list.
+        if target_object not in data or not isinstance(data[target_object], list):
+            data[target_object] = []
+
+
+        found_and_updated = False
+        if overwrite:
+            if 'id' not in new_object:
+                print("Error: new_object must have an 'id' key for overwrite to work.")
+                return
+
+            for i, entry in enumerate(data[target_object]):
+                if isinstance(entry, dict) and entry.get("id") == new_object["id"]:
+                    data[target_object][i] = new_object
+                    found_and_updated = True
+                    break
+
+        if not found_and_updated:
+            data[target_object].append(new_object)
+
+        with open(filepath, "w") as f:
+            json.dump(data, f, indent=4)
+
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
     finally:
         lock_main.release()
+
 
 #returns the proper format for sensors, sensor units, and communication units
 
@@ -255,10 +274,10 @@ if __name__ == "__main__":
 
     ser = None
     json_lock = threading.Lock()
-    if not isinstance(json_lock, threading.Lock):
-        raise Exception("Lock failed in main thread")
+    if type(json_lock) != type(threading.Lock()):
+        raise Exception("json_lock wasnt initialized as a threading.Lock")
     else:
-        print("Lock successfully created in main thread.")
+        print("Lock successfully created.")
 
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
@@ -275,11 +294,13 @@ if __name__ == "__main__":
     api_thread = threading.Thread(target=api.main_api_thread, args=(json_lock, ser, ))
     api_thread.start()
     threads.append(api_thread)
-
+    print("Threads started, reading messages")
     try:
         while True:
             buffer_chunk = serial_queue.get()
-            handle_msg(buffer_chunk, json_lock)
+            handle_msg(buffer_chunk, lock=json_lock)
+            time.sleep(0.005)
+
     except KeyboardInterrupt:
         print("\nProgram interrupted by user. Exiting.")
     finally:
