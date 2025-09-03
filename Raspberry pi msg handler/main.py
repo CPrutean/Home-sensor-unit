@@ -372,9 +372,8 @@ if __name__ == "__main__":
     reader_thread.start()
     threads.append(reader_thread)
 
-    api_thread = threading.Thread(target=api.main_api_thread, args=(json_lock, ser, ))
-    api_thread.start()
-    threads.append(api_thread)
+    api.assign_lock_and_ser_port(json_lock, ser)
+    api.run_app()
 
     probing_thread = threading.Thread(target=collect_readings, args=(ser, ))
     probing_thread.start()
