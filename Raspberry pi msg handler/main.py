@@ -6,6 +6,7 @@ import json
 import api
 import time
 import os
+from pathlib import Path
 import asyncio
 
 status = ["ONLINE", "ERROR", "OFFLINE"]
@@ -162,11 +163,51 @@ def handle_msg(msg, lock=None):
         #file we should place the response.
         #We also log the message recieved into a log file for future reference.
         for sensor in Communication_units[0].sens_units[ind].sensors:
-            for response in sensor.responses:
-                if msg_keywords[0] == response:
-                    json_object = return_sensor_reading_json_obj(ind, response, msg_keywords[1:-1], sensor.name)
-                    add_to_json("api.json", "readings", json_object, overwrite = True, lock_main = lock)
-                    break
+            if msg_keywords[0] in sensor.responses:
+                json_object = return_sensor_reading_json_obj(ind, msg_keywords[0], [float(i) for i in msg_keywords[1:-1]], sensor.name)
+                store_in_readings("Readings", json_object)
+                add_to_json("api.json", "readings", json_object, overwrite = True, lock_main = lock)
+                break
+#In each file we should store the readings from each sensor and what readings they took in a list
+#The file will contain multiple objects with what sensor each reading came from and what the reading was.
+#reset was only implemented for testing and proper data format
+def store_in_readings(filepath, reading, reset = False):
+    if not isinstance(reading, dict):
+        print("Error: reading wasnt a dictionary")
+        return
+
+    keys = reading.keys()
+    path = filepath + "/" + datetime.datetime.now().strftime("%Y-%m-%d") + ".json"
+    if not os.path.exists(filepath):
+        os.makedirs(filepath)
+
+    if not os.path.exists(path):
+        os.mknod(path)
+    try:
+        with open(path, "r") as f:
+            data = json.load(f)
+    except json.JSONDecodeError:
+        print("Error: JSON file at " + path + " is empty or malformed")
+        data = {}
+
+    if reset:
+        data = {}
+        with open(path, "w") as f:
+            json.dump(data, f, indent=4)
+        return
+
+    new_reading = {}
+    for entry in reading:
+        if entry != "sensor":
+            new_reading.update({entry: reading[entry]})
+
+    if reading["sensor"] in data.keys():
+        data[reading["sensor"]].append(new_reading)
+    else:
+        data.update({reading["sensor"]: [new_reading]})
+
+    with open(path, "w") as f:
+        json.dump(data, f, indent=4)
 
 
 #filepath should be a string that specifies the path to the file we are trying to access
