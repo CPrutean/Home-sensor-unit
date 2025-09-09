@@ -42,6 +42,9 @@ class Sensors:
         self.cmds = cmds
         self.responses = responses
 
+    def __str__(self):
+        return f"Sensor name: {self.name}\nCommands: {self.cmds}\nResponses: {self.responses}"
+
 class SensorUnit:
     name = ""
     sensors = []
@@ -60,6 +63,8 @@ class SensorUnit:
             global suID
             self.id = suID
             suID+=1
+    def __str__(self):
+        return f"Sensor unit name: {self.name}\nSensors: {self.sensors}\nStatus: {self.status}\nError Code: {self.error_code}\nID: {self.id}"
 
 
 class CommunicationUnit:
@@ -78,6 +83,8 @@ class CommunicationUnit:
             self.id = cuID
             self.name = name
             cuID+=1
+    def __str__(self):
+        return f"Communication unit name: {self.name}\nSensor units: {self.sens_units}\nID: {self.id}"
 
 
 Sensor_units:list = []
@@ -85,15 +92,13 @@ Communication_units:list = [CommunicationUnit(Sensor_units)]
 
 
 keywords = ["SENSOR", "Status", "Name", "Sens units", "NUM_OF_SU"]
-def handle_msg(msg, lock=None):
+def handle_msg(msg):
     msg_keywords = msg.split(VAL_SEPER)
 
     for keyword in msg_keywords:
         if keyword == "":
             msg_keywords.remove(keyword)
 
-    if type(lock) != type(threading.Lock()):
-        raise Exception("Lock wasnt initialized as a threading.Lock")
 
     # Always log messages recieved
     with open("logs.txt", "a") as f:
@@ -120,6 +125,7 @@ def handle_msg(msg, lock=None):
                 responses.remove(response)
 
         available_sensors.append(Sensors(msg_keywords[1], cmds, responses))
+        database.write("sensors", msg_keywords[1:])
 
 
     elif msg_keywords[0].split(" ")[0] == "Status":
@@ -131,12 +137,14 @@ def handle_msg(msg, lock=None):
         #currently hardcoded 0 since there is only one communication unit
         Communication_units[0].sens_units[index].status = msg_keywords[1]
         Communication_units[0].sens_units[index].error_code = error_value
+        database.write("sensor_unit", str(Communication_units[0].sens_units[index]).split("\n"), update = True)
+
 
 
     elif msg_keywords[0] == "Name":
         index = int(msg_keywords[-1])
         Communication_units[0].sens_units[index].name = msg_keywords[1]
-
+        database.write("sensor_unit", str(Communication_units[0].sens_units[index]).split("\n"), update = True)
 
     elif msg_keywords[0] == "Sens units":
         index = int(msg_keywords[-1])
@@ -147,17 +155,24 @@ def handle_msg(msg, lock=None):
                 if item == sensor.name:
                     Sensor_units[index].sensors.append(sensor)
                     break
+        database.write("sensor_unit", str(Sensor_units[index]).split("\n"), update = True)
+
 
     elif msg_keywords[0] == "NUM_OF_SU":
         num_of_sens_units = int(msg_keywords[-1])
         for i in range(num_of_sens_units):
             Communication_units[0].sens_units.append(SensorUnit("", []))
+            database.write("sensor_unit", str(Communication_units[0].sens_units[i]).split("\n"))
+
+        database.write("communication_unit", str(Communication_units[0]).split("\n"))
     else:
         ind = int(msg_keywords[-1])
         #What we do is we take the first word of the response and compare it against the other responses to find where in the api.JSON
         #file we should place the response.
         #We also log the message recieved into a log file for future reference.
         store_in_readings(msg_keywords)
+        database.write("most_recent_reading", msg_keywords, update = True)
+
 
 def store_in_readings(reading, reset = False):
     if not isinstance(reading, list):
@@ -221,11 +236,6 @@ if __name__ == "__main__":
     database.init()
 
     ser = None
-    json_lock = threading.Lock()
-    if type(json_lock) != type(threading.Lock()):
-        raise Exception("json_lock wasnt initialized as a threading.Lock")
-    else:
-        print("Lock successfully created.")
 
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
@@ -239,7 +249,6 @@ if __name__ == "__main__":
     reader_thread.start()
     threads.append(reader_thread)
 
-    api.assign_lock_and_ser_port(json_lock, ser)
     api.run_app()
 
     probing_thread = threading.Thread(target=collect_readings, args=(ser, ))
@@ -250,7 +259,7 @@ if __name__ == "__main__":
     try:
         while True:
             buffer_chunk = serial_queue.get()
-            handle_msg(buffer_chunk, lock=json_lock)
+            handle_msg(buffer_chunk)
             time.sleep(0.005)
 
     except KeyboardInterrupt:
