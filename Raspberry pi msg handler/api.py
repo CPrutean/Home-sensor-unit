@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
 import threading
-import json
-path = "api.json"
+import sqlite3
+from dotenv import load_dotenv
+
+
 lock = None
 ser_port = None
 

@@ -2,12 +2,13 @@ import serial
 import threading
 import queue
 import datetime
-import json
 import api
 import time
 import os
-from pathlib import Path
-import asyncio
+import pathlib
+import csv
+import database
+from dotenv import load_dotenv
 
 status = ["ONLINE", "ERROR", "OFFLINE"]
 available_sensors = []
@@ -18,7 +19,8 @@ suID = 1000
 
 
 # --- Configuration ---
-SERIAL_PORT = '/dev/ttyUSB0'
+load_dotenv()
+SERIAL_PORT = os.getenv("SERIAL_PORT")
 BAUD_RATE = 115200
 serial_queue = queue.Queue()
 
@@ -97,12 +99,8 @@ def handle_msg(msg, lock=None):
     with open("logs.txt", "a") as f:
         f.write(f"{datetime.datetime.now()}: {msg}\n")
         f.close()
-
-    if len(msg_keywords) < 2:
-        print("Invalid message recieved")
-        with open("logs.txt", "a") as f:
-            f.write(f"Error message:\n");
-            f.write(f"{datetime.datetime.now()}: {msg}\n")
+    if (len(msg_keywords) < 2):
+        print("Error: Message recieved wasnt formatted correctly")
         return
 
     #When initializing a sensor type the structure of the request will come in as so
@@ -123,8 +121,7 @@ def handle_msg(msg, lock=None):
 
         available_sensors.append(Sensors(msg_keywords[1], cmds, responses))
 
-        json_obj = return_sensor_jsonobj(msg_keywords[1], cmds, responses)
-        add_to_json("api.json", "sensors", json_obj, lock_main = lock)
+
     elif msg_keywords[0].split(" ")[0] == "Status":
         index = int(msg_keywords[-1])
 
@@ -134,14 +131,13 @@ def handle_msg(msg, lock=None):
         #currently hardcoded 0 since there is only one communication unit
         Communication_units[0].sens_units[index].status = msg_keywords[1]
         Communication_units[0].sens_units[index].error_code = error_value
-        json_obj = return_su_json_obj(index)
-        add_to_json("api.json", "sensor_units", json_obj, overwrite = True, lock_main = lock)
+
 
     elif msg_keywords[0] == "Name":
         index = int(msg_keywords[-1])
         Communication_units[0].sens_units[index].name = msg_keywords[1]
-        json_obj = return_su_json_obj(index)
-        add_to_json("api.json", "sensor_units", json_obj, overwrite = True, lock_main = lock)
+
+
     elif msg_keywords[0] == "Sens units":
         index = int(msg_keywords[-1])
         #The request will come with the names so in this case we will assume that the list of sensors is always succesfully initialized
@@ -151,8 +147,7 @@ def handle_msg(msg, lock=None):
                 if item == sensor.name:
                     Sensor_units[index].sensors.append(sensor)
                     break
-        json_obj = return_su_json_obj(index)
-        add_to_json("api.json", "sensor_units", json_obj, overwrite = True, lock_main = lock)
+
     elif msg_keywords[0] == "NUM_OF_SU":
         num_of_sens_units = int(msg_keywords[-1])
         for i in range(num_of_sens_units):
@@ -162,169 +157,39 @@ def handle_msg(msg, lock=None):
         #What we do is we take the first word of the response and compare it against the other responses to find where in the api.JSON
         #file we should place the response.
         #We also log the message recieved into a log file for future reference.
-        for sensor in Communication_units[0].sens_units[ind].sensors:
-            if msg_keywords[0] in sensor.responses:
-                json_object = return_sensor_reading_json_obj(ind, msg_keywords[0], [float(i) for i in msg_keywords[1:-1]], sensor.name)
-                store_in_readings("Readings", json_object)
-                add_to_json("api.json", "readings", json_object, overwrite = True, lock_main = lock)
-                break
-#In each file we should store the readings from each sensor and what readings they took in a list
-#The file will contain multiple objects with what sensor each reading came from and what the reading was.
-#reset was only implemented for testing and proper data format
-def store_in_readings(filepath, reading, reset = False):
-    if not isinstance(reading, dict):
+        store_in_readings(msg_keywords)
+
+def store_in_readings(reading, reset = False):
+    if not isinstance(reading, list):
         print("Error: reading wasnt a dictionary")
         return
 
-    keys = reading.keys()
-    path = filepath + "/" + datetime.datetime.now().strftime("%Y-%m-%d") + ".json"
-    if not os.path.exists(filepath):
-        os.makedirs(filepath)
+    path = "Readings"
+    path += "/" + datetime.datetime.now().strftime("%Y-%m-%d") + ".csv"
 
-    if not os.path.exists(path):
-        os.mknod(path)
-    try:
-        with open(path, "r") as f:
-            data = json.load(f)
-    except json.JSONDecodeError:
-        print("Error: JSON file at " + path + " is empty or malformed")
-        data = {}
+    path = pathlib.Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    header = ["sensor", "reading", "values", "timestamp"]
+    insert_data = []
 
-    if reset:
-        data = {}
-        with open(path, "w") as f:
-            json.dump(data, f, indent=4)
-        return
+    global available_sensors
+    for sensor in available_sensors:
+        if sensor.name == reading[0]:
+            insert_data.append(sensor.name)
+            break
+    insert_data.append(reading[0])
+    tempStr = ""
+    for value in reading[1:-1]:
+        tempStr += value
+        tempStr += " "
+    insert_data.append(tempStr[0:-1])
+    insert_data.append(datetime.datetime.now().strftime("%m-%d-%Y: %H:%M:%S"))
 
-    new_reading = {}
-    for entry in reading:
-        if entry != "sensor":
-            new_reading.update({entry: reading[entry]})
+    with open(path, "w", newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=header)
+        writer.writeheader()
+        writer.writerow({"sensor":insert_data[0], "reading":insert_data[1], "values":insert_data[2], "timestamp":insert_data[3]})
 
-    if reading["sensor"] in data.keys():
-        data[reading["sensor"]].append(new_reading)
-    else:
-        data.update({reading["sensor"]: [new_reading]})
-
-    with open(path, "w") as f:
-        json.dump(data, f, indent=4)
-
-
-#filepath should be a string that specifies the path to the file we are trying to access
-#Target object should contain a string that specifies whether we are adding to senors, sensor_units, or communication_units
-#new_object should contain a json object to append to the target object
-def add_to_json(filepath, target_object, new_object, overwrite = False, lock_main = None, reset_file = False):
-    if type(lock_main) != type(threading.Lock()):
-        print("Lock in add_to_json wasnt specified")
-        exit(-1)
-
-    lock_main.acquire()
-    try:
-        # Step 1: Read existing data or initialize if file doesn't exist.
-        if os.path.exists(filepath):
-            with open(filepath, "r") as f:
-                try:
-                    data = json.load(f)
-                except json.JSONDecodeError:
-                    # Handle cases where the file is empty or malformed
-                    data = {}
-        else:
-            # If the file doesn't exist, start with an empty dictionary.
-            data = {}
-
-        # Ensure the top-level structure is a dictionary
-        if not isinstance(data, dict):
-            print(f"Error: JSON file at {filepath} must contain a dictionary.")
-            return
-        if reset_file:
-            data = {
-                "sensors":[],
-                "sensor_units":[],
-                "communication_units":[],
-                "readings":[]
-            }
-            with open(filepath, "w") as f:
-                json.dump(data, f, indent=4)
-            return
-
-        # Ensure the target key exists and is a list.
-        if target_object not in data or not isinstance(data[target_object], list):
-            data[target_object] = []
-
-        found_and_updated = False
-        if overwrite and not target_object=="readings":
-            if 'id' not in new_object:
-                print("Error: new_object must have an 'id' key for overwrite to work. from object")
-                print(new_object)
-                return
-        elif overwrite and target_object=="readings":
-            for reading in data["readings"]:
-                if reading.keys() == new_object.keys():
-                    data["readings"].remove(reading)
-                    data["readings"].append(new_object)
-                    found_and_updated = True
-                    break
-
-        if not found_and_updated:
-            data[target_object].append(new_object)
-
-        with open(filepath, "w") as f:
-            json.dump(data, f, indent=4)
-
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        print(new_object)
-    finally:
-        lock_main.release()
-
-
-#returns the proper format for sensors, sensor units, and communication units
-
-#Returns a json object with the current state of the sensor unit with the provided index
-def return_su_json_obj(index):
-    global Communication_units
-    if (index < 0) or (index >= len(Communication_units[0].sens_units)):
-        return {}
-    sens_name_list = []
-    for sensor_unit in Communication_units[0].sens_units[index].sensors:
-        sens_name_list.append(sensor_unit.name)
-    #
-    return_val = {"id":Communication_units[0].sens_units[index].id,
-        "name":Communication_units[0].sens_units[index].name,
-        "sensors":sens_name_list,
-        "status":Communication_units[0].sens_units[index].status,
-        "error_code":Communication_units[0].sens_units[index].error_code,
-    }
-    return return_val
-
-def return_cu_json_obj(index = 0):
-    #currently the index is hardcoded to 0 since there is only one communication unit more to be added in the future
-    json_obj = {"id":Communication_units[0].id, "name":Communication_units[0].name, "sensor_units":[]}
-    for sensor_unit in Communication_units[0].sens_units:
-        json_obj["sensor_units"].append(sensor_unit.id)
-    return json_obj
-
-def return_sensor_jsonobj(name, cmds = [], responses = []):
-    if type(cmds or responses) != list:
-        print("Error: cmds or responses wasnt a list")
-        return {}
-    if name is None or type(name) != str:
-        print("name in sensor unit wasnt a string or wasnt specified")
-        return {}
-    if len(cmds) == 0 or len(responses) == 0:
-        print("cmds or responses was empty")
-        return {}
-
-    json_obj = {"name":name, "cmds":cmds, "responses":responses}
-    return json_obj
-
-#Return the sensor reading with the id of the sensor unit that it is connected to
-def return_sensor_reading_json_obj(index, response, reading, sensor_name = ""):
-    return {
-        response:reading,
-        "sensor":sensor_name,
-        "id":Communication_units[0].sens_units[index].id
-    }
 
 def collect_readings(serial_port):
     while True:
@@ -346,12 +211,14 @@ def serial_read(ser_port, queue):
             break
         except KeyboardInterrupt:
             print("\nProgram interrupted by user. Exiting.")
+
     print("Serial read thread terminated.")
 
 
 threads = []
 if __name__ == "__main__":
     print("Start monitoring serial port:")
+    database.init()
 
     ser = None
     json_lock = threading.Lock()
@@ -378,9 +245,6 @@ if __name__ == "__main__":
     probing_thread = threading.Thread(target=collect_readings, args=(ser, ))
     probing_thread.start()
     threads.append(probing_thread)
-
-    add_to_json("api.json", "sensors", {}, lock_main = json_lock, reset_file = True)
-    add_to_json("api.json", "communication_units", return_cu_json_obj(), overwrite = True, lock_main = json_lock)
 
     print("Threads started, reading messages")
     try:
