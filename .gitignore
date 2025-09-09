@@ -4,3 +4,5 @@ sensor_units_lib/.vscode/
 .idea/
 *.json
 *.log
+*.db
+*.env

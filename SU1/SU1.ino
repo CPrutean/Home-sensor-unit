@@ -2,7 +2,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/queue.h>
-
+#include <configuration.h>
 
 #define DHTTYPE DHT22
 #define DHTPIN 4
@@ -18,7 +18,6 @@ DHT dht(DHTPIN, DHTTYPE);
 HardwareSerial gpsSerial(2);
 TinyGPSPlus gps;
 
-const uint8_t broadcastAddress[] = {0x08, 0xa6, 0xf7, 0x70, 0x10, 0x04};
 const char* module = "temp_and_humid_SU";
 
 sensor_unit *sens_unit_ptr;
@@ -85,7 +84,7 @@ void queueHandlerTask(void* pvParamaters) {
   for (;;) {
     if (SU1.queue->receive(msg)) {
       def_message_struct response;
-      handleRequestSU(msg.message, &response);
+      handleRequestSU(msg, &response);
     }
   }
 }
@@ -124,8 +123,8 @@ void setup() {
     #endif
     exit(-1);
   }
-  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
-  memcpy(SU1.CU_ADDR, broadcastAddress, 6);
+  memcpy(peerInfo.peer_addr, communication_unit_addr, 6);
+  memcpy(SU1.CU_ADDR, communication_unit_addr, 6);
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
