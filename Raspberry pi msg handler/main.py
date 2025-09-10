@@ -26,6 +26,8 @@ load_dotenv()
 SERIAL_PORT = os.getenv("SERIAL_PORT")
 json_path = os.getenv("JSON_PATH")
 json_lock = threading.Lock()
+logs_lock = threading.Lock()
+
 
 BAUD_RATE = 115200
 serial_queue = queue.Queue()
@@ -150,12 +152,10 @@ def handle_msg(msg):
     for keyword in msg_keywords:
         if keyword == "":
             msg_keywords.remove(keyword)
+    global available_sensors
 
+    log(msg)
 
-    # Always log messages recieved
-    with open("logs.txt", "a") as f:
-        f.write(f"{datetime.datetime.now()}: {msg}\n")
-        f.close()
     if (len(msg_keywords) < 2):
         print("Error: Message recieved wasnt formatted correctly")
         return
@@ -164,7 +164,6 @@ def handle_msg(msg):
     #SENSOR|SENSOR_NAME|Commands,Seperated,By,Commas|Responses,Seperated,By,Commas|
     #This will list out the available requests that we can send to the sensors
     if msg_keywords[0] == "SENSOR":
-        global available_sensors
         cmds = msg_keywords[2].split(CMD_SEPER)
         responses = msg_keywords[3].split(CMD_SEPER)
 
@@ -221,7 +220,6 @@ def handle_msg(msg):
         #Assume a reading comes in the form of:
         #RESPONSE|Values|Another value|Index
         temp_sensor = ""
-        global available_sensors
         for sensor in available_sensors:
             if msg_keywords[0] in sensor.responses:
                 temp_sensor = sensor.name
@@ -234,6 +232,18 @@ def handle_msg(msg):
         store_in_readings(msg_keywords)
         write_to_json("Most recent readings")
 
+
+def log(msg):
+    # Always log messages recieved
+    logs_lock.acquire()
+    try:
+        with open("logs.txt", "a") as f:
+            f.write(f"{datetime.datetime.now()}: {msg}\n")
+            f.close()
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        logs_lock.release()
 
 
 
@@ -379,7 +389,6 @@ if __name__ == "__main__":
     print("Start monitoring serial port:")
     init_json()
     ser = None
-    api.assign_lock_and_ser_port(json_lock, ser)
 
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
@@ -388,6 +397,8 @@ if __name__ == "__main__":
     except serial.SerialException as e:
         print(f"Serial Error: {e}")
         print(f"Check that a device is connected to {SERIAL_PORT} and that the port is correct.")
+
+    api.assign_lock_and_ser_port(json_lock, ser)
 
     reader_thread = threading.Thread(target=serial_read, args=(ser, serial_queue, ))
     reader_thread.start()
