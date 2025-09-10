@@ -7,20 +7,26 @@ import time
 import os
 import pathlib
 import csv
-import database
 from dotenv import load_dotenv
+import json
+
 
 status = ["ONLINE", "ERROR", "OFFLINE"]
 available_sensors = []
 
+
 #constant cuID and suID for initializing communication units and sensor units
 cuID = 1000
 suID = 1000
+sensID = 1000
 
 
 # --- Configuration ---
 load_dotenv()
 SERIAL_PORT = os.getenv("SERIAL_PORT")
+json_path = os.getenv("JSON_PATH")
+json_lock = threading.Lock()
+
 BAUD_RATE = 115200
 serial_queue = queue.Queue()
 
@@ -37,13 +43,30 @@ class Sensors:
     name = ""
     cmds = []
     responses = []
+    id = 0
     def __init__(self, name, cmds, responses):
         self.name = name
         self.cmds = cmds
         self.responses = responses
+        global sensID
+        self.id = sensID
+        sensID+=1
 
     def __str__(self):
-        return f"Sensor name: {self.name}\nCommands: {self.cmds}\nResponses: {self.responses}"
+        command_string = ""
+        for command in self.cmds:
+            if len(self.cmds) <= 0:
+                command_string += command
+                command_string += ","
+        command_string = command_string[0:-1]
+        response_string = ""
+        for response in self.responses:
+            if len(self.responses) <= 0:
+                response_string += response
+                response_string += ","
+        response_string = response_string[0:-1]
+
+        return f"Sensor name: {self.name}\nCommands: {command_string}\nResponses: {response_string}\nID:{self.id}"
 
 class SensorUnit:
     name = ""
@@ -64,7 +87,12 @@ class SensorUnit:
             self.id = suID
             suID+=1
     def __str__(self):
-        return f"Sensor unit name: {self.name}\nSensors: {self.sensors}\nStatus: {self.status}\nError Code: {self.error_code}\nID: {self.id}"
+        sensor_string = ""
+        for sensor in self.sensors:
+            sensor_string += sensor.name
+            sensor_string += ","
+        sensor_string = sensor_string[0:-1]
+        return f"Name:{self.name}\nSensors:{sensor_string}\nStatus:{self.status}\nError Code:{self.error_code}\nID:{self.id}"
 
 
 class CommunicationUnit:
@@ -84,8 +112,32 @@ class CommunicationUnit:
             self.name = name
             cuID+=1
     def __str__(self):
-        return f"Communication unit name: {self.name}\nSensor units: {self.sens_units}\nID: {self.id}"
+        temp = ""
+        for sensor_unit in self.sens_units:
+            temp+=sensor_unit.id
+            temp+=","
+        temp = temp[0:-1]
+        return f"Name:{self.name}\nSensor units:{temp}\nID:{self.id}"
 
+class Most_recent_readings:
+    sensor = ""
+    reading = ""
+    values = []
+    timestamp = ""
+    def __str__(self):
+        values_string = ""
+        for value in self.values:
+            values_string += value
+            values_string += ","
+        values_string = values_string[0:-1]
+
+        return f"Sensor:{self.sensor}\nReading:{self.reading}\nValues:{values_string}\nTimestamp:{self.timestamp}"
+
+    def __init__(self, sensor, reading, values, timestamp):
+        self.sensor = sensor
+        self.reading = reading
+        self.values = values
+        self.timestamp = timestamp
 
 Sensor_units:list = []
 Communication_units:list = [CommunicationUnit(Sensor_units)]
@@ -123,9 +175,10 @@ def handle_msg(msg):
         for response in responses:
            if response == "":
                 responses.remove(response)
+        obj = Sensors(msg_keywords[1], cmds, responses)
+        available_sensors.append(obj)
+        write_to_json("Sensors", str(obj))
 
-        available_sensors.append(Sensors(msg_keywords[1], cmds, responses))
-        database.write("sensors", msg_keywords[1:])
 
 
     elif msg_keywords[0].split(" ")[0] == "Status":
@@ -137,14 +190,13 @@ def handle_msg(msg):
         #currently hardcoded 0 since there is only one communication unit
         Communication_units[0].sens_units[index].status = msg_keywords[1]
         Communication_units[0].sens_units[index].error_code = error_value
-        database.write("sensor_unit", str(Communication_units[0].sens_units[index]).split("\n"), update = True)
-
+        write_to_json("Sensor units", str(Communication_units[0].sens_units[index]), update = True, update_key = Communication_units[0].sens_units[index].id)
 
 
     elif msg_keywords[0] == "Name":
         index = int(msg_keywords[-1])
         Communication_units[0].sens_units[index].name = msg_keywords[1]
-        database.write("sensor_unit", str(Communication_units[0].sens_units[index]).split("\n"), update = True)
+        write_to_json("Sensor units", str(Communication_units[0].sens_units[index]), update = True, update_key = Communication_units[0].sens_units[index].id)
 
     elif msg_keywords[0] == "Sens units":
         index = int(msg_keywords[-1])
@@ -155,23 +207,34 @@ def handle_msg(msg):
                 if item == sensor.name:
                     Sensor_units[index].sensors.append(sensor)
                     break
-        database.write("sensor_unit", str(Sensor_units[index]).split("\n"), update = True)
+        write_to_json("Sensor units", str(Sensor_units[index]), update = True, update_key = Sensor_units[index].id)
 
 
     elif msg_keywords[0] == "NUM_OF_SU":
         num_of_sens_units = int(msg_keywords[-1])
         for i in range(num_of_sens_units):
             Communication_units[0].sens_units.append(SensorUnit("", []))
-            database.write("sensor_unit", str(Communication_units[0].sens_units[i]).split("\n"))
+            write_to_json("Sensor units", str(Communication_units[0].sens_units[i]))
 
-        database.write("communication_unit", str(Communication_units[0]).split("\n"))
     else:
         ind = int(msg_keywords[-1])
-        #What we do is we take the first word of the response and compare it against the other responses to find where in the api.JSON
-        #file we should place the response.
-        #We also log the message recieved into a log file for future reference.
+        #Assume a reading comes in the form of:
+        #RESPONSE|Values|Another value|Index
+        temp_sensor = ""
+        global available_sensors
+        for sensor in available_sensors:
+            if msg_keywords[0] in sensor.responses:
+                temp_sensor = sensor.name
+                break
+        if temp_sensor == "":
+            print("Error: No sensor found with the response")
+            return
+
+        reading = Most_recent_readings(temp_sensor, msg_keywords[0], msg_keywords[1:-1], datetime.datetime.now().strftime("%m-%d-%Y: %H:%M:%S"))
         store_in_readings(msg_keywords)
-        database.write("most_recent_reading", msg_keywords, update = True)
+        write_to_json("Most recent readings")
+
+
 
 
 def store_in_readings(reading, reset = False):
@@ -185,6 +248,7 @@ def store_in_readings(reading, reset = False):
     path = pathlib.Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     header = ["sensor", "reading", "values", "timestamp"]
+    header = ["sensor", "reading", "values", "timestamp"]
     insert_data = []
 
     global available_sensors
@@ -193,11 +257,11 @@ def store_in_readings(reading, reset = False):
             insert_data.append(sensor.name)
             break
     insert_data.append(reading[0])
-    tempStr = ""
+    temp_str = ""
     for value in reading[1:-1]:
-        tempStr += value
-        tempStr += " "
-    insert_data.append(tempStr[0:-1])
+        temp_str += value
+        temp_str += " "
+    insert_data.append(temp_str[0:-1])
     insert_data.append(datetime.datetime.now().strftime("%m-%d-%Y: %H:%M:%S"))
 
     with open(path, "w", newline='') as f:
@@ -229,13 +293,93 @@ def serial_read(ser_port, queue):
 
     print("Serial read thread terminated.")
 
+obj_key = ["Sensors", "Sensor units", "Communication units", "Most recent readings"]
+
+def return_json_obj(string):
+    obj_split = string.split("\n")
+    obj = {}
+    for item in obj_split:
+        if item == "":
+            continue
+        obj.update({item.split(":")[0]:item.split(":")[1]})
+    return obj
+
+def write_to_json(target_obj, value, update = False, update_key = None):
+    global json_path
+    global json_lock
+    global obj_key
+    if target_obj not in obj_key:
+        print("Error: Invalid object name")
+        return
+    if update and update_key is None:
+        print("Error: update_key wasnt specified")
+        return
+
+
+    if not target_obj == "Most recent readings" and not isinstance(update_key, int):
+        print("Error: update_key wasnt an integer")
+        return
+
+    json_lock.acquire()
+    #update_key needs to be a list of the form [sensor, reading]
+
+    try:
+        with open(json_path, "w") as f:
+            data = json.load(f)
+
+        if not update:
+            data[target_obj].append(return_json_obj(value))
+        elif target_obj == "Most recent readings":
+            return_json_obj(value)
+            found = False
+            for item in data[target_obj]:
+                if item["Sensor"] == value["Sensor"] and item["Reading"] == value["Reading"]:
+                    data[target_obj].remove(item)
+                    data.append(value)
+                    found = True
+                    break
+            if not found:
+                data.append(value)
+        else:
+            for item in data[target_obj]:
+                if item["ID"] == update_key:
+                    data[target_obj].remove(item)
+                    data[target_obj].append(return_json_obj(value))
+                    break
+        json.dump(data, f, indent=4)
+    except Exception as e:
+        print(f"Error: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Error: {e}")
+    finally:
+        json_lock.release()
+
+def init_json():
+    global json_path
+    global json_lock
+    json_lock.acquire()
+    try:
+        with open(json_path, "w") as f:
+            json.dump({
+                "Sensors": [],
+                "Sensor units": [],
+                "Communication units": [],
+                "Most recent readings": []
+            }, f, indent=4)
+    except Exception as e:
+        print(f"Error: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Error: {e}")
+    finally:
+        json_lock.release()
+
 
 threads = []
 if __name__ == "__main__":
     print("Start monitoring serial port:")
-    database.init()
-
+    init_json()
     ser = None
+    api.assign_lock_and_ser_port(json_lock, ser)
 
     try:
         ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
