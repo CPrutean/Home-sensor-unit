@@ -114,7 +114,6 @@ void setup() {
   xTaskCreatePinnedToCore(retryTask, "retryFailedMessages", 8192, NULL, 3, NULL, 1);
   xTaskCreatePinnedToCore(queueHandlerTask, "Queue Handler Task", 8192, NULL, 2, NULL, 1);
   xTaskCreatePinnedToCore(serialHandlerTask, "Serial Handler Task", 8192, NULL, 1, NULL, 1);
-  respondPiRequest("INIT|PI|");
 }
 
 void loop() {
