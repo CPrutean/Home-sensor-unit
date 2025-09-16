@@ -2,13 +2,11 @@ from flask import Flask, request, jsonify
 import os
 import json
 import threading
-import serial
 from dotenv import load_dotenv
 import main
-
+from main import json_lock
 
 load_dotenv()
-json_lock = None
 ser_port = None
 new_flag = False
 json_path = os.getenv("JSON_PATH")
@@ -25,9 +23,6 @@ def assign_lock_and_ser_port(lock_in, ser_port_in):
 
 
 
-def run_app():
-    app.run(host='0.0.0.0', port=80)
-
 def set_new_flag():
     global new_flag
     new_flag = True
@@ -38,7 +33,6 @@ app=Flask(__name__)
 @app.route('/')
 def return_all():
     global json_path
-    global json_lock
     json_lock.acquire()
     try:
         with open(json_path, "r") as f:
@@ -56,7 +50,6 @@ def return_all():
 @app.route('/sensors', methods = ["GET"])
 def return_sensors():
     global json_path
-    global json_lock
     json_lock.acquire()
     try:
         with open(json_path, "r") as f:
@@ -76,7 +69,6 @@ def return_sensors():
 @app.route('/sensor/<int:sensor_id>', methods = ["GET"])
 def return_sensor(sensor_id):
     global json_path
-    global json_lock
     json_lock.acquire()
     try:
         with open(json_path, "r") as f:
@@ -97,7 +89,6 @@ def return_sensor(sensor_id):
 @app.route('/readings', methods = ["GET"])
 def return_readings():
     global json_path
-    global json_lock
     json_lock.acquire()
     try:
         with open(json_path, "r") as f:
@@ -114,7 +105,6 @@ def return_readings():
 @app.route('/readings/<string:sensor_name>', methods = ["GET"])
 def return_readings_for_sensor(sensor_name):
     global json_path
-    global json_lock
     json_lock.acquire()
     try:
         with open(json_path, "r") as f:
@@ -140,7 +130,6 @@ def return_readings_for_sensor(sensor_name):
 @app.route('/readings/<string:Reading>', methods = ["GET"])
 def return_readings_for_response(Reading):
     global json_path
-    global json_lock
     json_lock.acquire()
     try:
         with open(json_path, "r") as f:
@@ -161,14 +150,13 @@ def return_readings_for_response(Reading):
 @app.route('/sensor_units', methods = ["GET"])
 def return_sensor_units():
     global json_path
-    global json_lock
     json_lock.acquire()
     try:
         with open(json_path, "r") as f:
             data = json.load(f)
         return jsonify({"Sensor units": data["Sensor units"]})
     except Exception as e:
-        return{"ERROR":"FAILED TO READ JSON FILE"}
+        return jsonify({"ERROR": "FAILED TO READ JSON FILE"})
     except json.JSONDecodeError as e:
         return{"ERROR":"FAILED TO PARSE JSON FILE"}
     finally:
@@ -179,7 +167,6 @@ def return_sensor_units():
 @app.route('/sensor_units/<int:sensor_unit_id>', methods = ["GET"])
 def return_sensor_unit(sensor_unit_id):
     global json_path
-    global json_lock
     json_lock.acquire()
     try:
         with open(json_path, "r") as f:
@@ -199,7 +186,6 @@ def return_sensor_unit(sensor_unit_id):
 @app.route('/communication_units/', methods = ["GET"])
 def return_communication_units():
     global json_path
-    global json_lock
     json_lock.acquire()
     try:
         with open(json_path, "r") as f:
@@ -220,9 +206,17 @@ def send_push(send_command):
         return "ERROR: NO COMMAND SENT"
     ser_port.write(send_command.encode('utf-8'))
     return "OK"
+@app.route('/communication_units/amount', methods = ['GET'])
+def return_amount_of_comm_units():
+    return jsonify({"comm_units": main.get_amount_of_comm_units()})
+
+
+
+def run_app():
+    app.run(host='0.0.0.0', port=5000, threaded=True)
 
 #Only works when called directly for testing purposes
 if __name__ == '__main__':
     ser_port = None
     lock = threading.Lock()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, threaded=True)
