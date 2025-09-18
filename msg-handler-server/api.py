@@ -5,6 +5,8 @@ import threading
 from dotenv import load_dotenv
 import main
 from main import json_lock
+from flask_cors import CORS
+from generate_certs import generate_self_signed_cert
 
 load_dotenv()
 ser_port = None
@@ -213,7 +215,11 @@ def return_amount_of_comm_units():
 
 
 def run_app():
+    # generate_self_signed_cert('localhost')
+    # app.run(host='0.0.0.0', port=5000, threaded=True, ssl_context=('cert.pem', 'key.pem'))
+    CORS(app)
     app.run(host='0.0.0.0', port=5000, threaded=True)
+
 
 #Only works when called directly for testing purposes
 if __name__ == '__main__':
