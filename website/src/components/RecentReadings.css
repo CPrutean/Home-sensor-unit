@@ -1,0 +1,74 @@
+/* RecentReadings styles */
+.recent-readings-container {
+  padding: 20px;
+  background-color: #222;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  margin-bottom: 30px;
+}
+
+.recent-readings-container h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #f0f0f0;
+  text-align: left;
+  border-bottom: 1px solid #444;
+  padding-bottom: 10px;
+}
+
+.readings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.reading-card {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease-in-out;
+}
+
+.reading-card:hover {
+  transform: translateY(-5px);
+}
+
+.reading-card h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #f0f0f0;
+}
+
+.reading-type {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.reading-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 8px 0;
+  color: #ffffff;
+}
+
+.reading-unit {
+  font-size: 1rem;
+  font-weight: normal;
+  color: #a0a0a0;
+}
+
+.reading-timestamp {
+  color: #888;
+  font-size: 0.8rem;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .readings-grid {
+    grid-template-columns: 1fr;
+  }
+}

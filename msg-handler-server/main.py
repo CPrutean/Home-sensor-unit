@@ -88,18 +88,20 @@ class CommunicationUnit:
         }
 
 class RecentReading:
-    def __init__(self, sensor, reading, values):
+    def __init__(self, sensor, reading, values, value):
         self.sensor = sensor
         self.reading = reading
         self.values = values
         self.timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.value = value
 
     def to_dict(self):
         return {
             "Sensor": self.sensor,
             "Reading": self.reading,
             "Values": self.values,
-            "Timestamp": self.timestamp
+            "Timestamp": self.timestamp,
+            "Value": self.value
         }
 
 # --- APPLICATION STATE ---
@@ -161,14 +163,14 @@ def handle_msg(msg):
                 write_to_json("Sensor units", su.to_dict(), update=True, update_key=su.id)
             else: # Assumed to be a sensor reading
                 response_keyword = keyword
-                values = msg_parts[1:-1]
+                values = msg_parts[1:-2]
                 sensor_name = next((s.name for s in available_sensors if response_keyword in s.responses), None)
-
+                value = msg_parts[-2]
                 if not sensor_name:
                     print(f"Error: No sensor found for response '{response_keyword}'")
                     return
 
-                reading = RecentReading(sensor_name, response_keyword, values)
+                reading = RecentReading(sensor_name, response_keyword, values, value)
                 store_in_readings(reading)
                 write_to_json("Most recent readings", reading.to_dict(), update=True)
 
@@ -194,8 +196,19 @@ def write_to_json(target_obj, value_dict, update=False, update_key=None):
             found = False
             # Special case for "Most recent readings", which updates based on sensor name
             if target_obj == "Most recent readings":
-                key_to_match = "Sensor"
-                value_to_match = value_dict[key_to_match]
+                #Needs to math the reading and sensor objects to upodate
+                for reading in data[target_obj]:
+                    if reading["Sensor"] == value_dict["Sensor"] and reading["Reading"] == value_dict["Reading"]:
+                        data[target_obj].remove(reading)
+                        data[target_obj].append(value_dict)
+                        found = True
+                        break
+                if not found:
+                    data[target_obj].append(value_dict)
+                with open(JSON_PATH, 'w') as f:
+                    json.dump(data, f, indent=4)
+                return
+
             else: # All other objects update based on ID
                 key_to_match = "ID"
                 value_to_match = update_key
@@ -226,11 +239,12 @@ def store_in_readings(reading_obj):
     log_directory.mkdir(parents=True, exist_ok=True)
     path = log_directory / f"{datetime.datetime.now().strftime('%Y-%m-%d')}.csv"
 
-    header = ["sensor", "reading", "values", "timestamp"]
+    header = ["sensor", "reading", "values", "value", "timestamp"]
     row_data = {
         "sensor": reading_obj.sensor,
         "reading": reading_obj.reading,
         "values": " ".join(reading_obj.values), # Join values into a single string
+        "value": reading_obj.value,
         "timestamp": reading_obj.timestamp
     }
 
