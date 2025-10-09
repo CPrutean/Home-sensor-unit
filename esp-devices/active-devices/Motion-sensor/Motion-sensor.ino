@@ -45,7 +45,11 @@ void onDataRecv(const uint8_t* adr, const uint8_t* data, int len) {
 
 //Define interrupt for motion sensors
 void IRAM_ATTR motionISR() {
-  
+  def_message_struct msg;
+  memset(&msg, 0, sizeof(def_message_struct));
+  msg.message[0] = '\0';
+  msg.strlen = snprintf(msg.message, strlen(motion_unit_responses[0], "%s", motion_unit_responses[0]));
+  sendMessage(communication_unit_addr, (uint8_t*)&msg, sizeof(def_message_struct));
 }
 
 void queueHandlerTask(void* pvParamaters) {
@@ -91,6 +95,11 @@ void setup() {
   esp_now_register_send_cb(onDataSent);
   esp_now_register_recv_cb(esp_now_recv_cb_t(onDataRecv));
   
+
+  //Below is the source code for attaching an interrupt to a motion sensor
+  //This assumes the logic that when a PIR motion sensor detects motion the data pin is output to high so
+  //When this input is set to high we are setting it up to high.
+  attachInterrupt(MOTION_SENSOR_PIN, motionISR, RISING);
 }
 
 void loop() {
