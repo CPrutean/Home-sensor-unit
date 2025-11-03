@@ -4,7 +4,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <configuration.h>
-
+#define DEBUG 
 
 #define MOTION_SENSOR_PIN 34
 #define SDA_PIN 22
@@ -45,11 +45,14 @@ void onDataRecv(const uint8_t* adr, const uint8_t* data, int len) {
 
 //Define interrupt for motion sensors
 void IRAM_ATTR motionISR() {
+/*
   def_message_struct msg;
   memset(&msg, 0, sizeof(def_message_struct));
   msg.message[0] = '\0';
   msg.strlen = snprintf(msg.message, strlen(motion_unit_responses[0], "%s", motion_unit_responses[0]));
   sendMessage(communication_unit_addr, (uint8_t*)&msg, sizeof(def_message_struct));
+*/
+  Serial.println("Motion detected");
 }
 
 void queueHandlerTask(void* pvParamaters) {
@@ -90,7 +93,7 @@ void setup() {
   peerInfo.encrypt = false;
   if (esp_now_add_peer(&peerInfo) != ESP_OK) {
     Serial.println("Failed to add peer exiting");
-    exit(-1);
+  //  exit(-1);
   }
   esp_now_register_send_cb(onDataSent);
   esp_now_register_recv_cb(esp_now_recv_cb_t(onDataRecv));
