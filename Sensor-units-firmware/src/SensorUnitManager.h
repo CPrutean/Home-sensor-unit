@@ -18,19 +18,19 @@ public:
                     const char *LMKKEYIN)
       : numOfSu{static_cast<size_t>(numOfSuIn)} {
     for (int i = 0; i < numOfSuIn; i++) {
-      memcpy(m_suMac[i], macAdrIn[i], 6);
+      memcpy(suPeerInf[i].peer_addr, macAdrIn[i], 6);
     }
     strncpy(PMKKEY, PMKKEYIN, 16);
     strncpy(LMKKEY, LMKKEYIN, 16);
   }
-  void sendToSu(Packet packet, int suNum);
+  virtual void sendToSu(Packet packet, int suNum);
   virtual void handlePacket(const Packet &packet);
   MessageQueue msgQueue{};
   MessageAck msgAck{};
-  void initESPNOW();
+  virtual void initESPNOW();
 
 protected:
-  uint8_t m_suMac[10][6]{};
+  esp_now_peer_info_t suPeerInf[10]{};
   size_t numOfSu{};
   SensorUnitStatus m_status[10]{};
   Sensors_t sensorsAvlbl[10][3]{};
