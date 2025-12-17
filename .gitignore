@@ -1,8 +1,12 @@
-sensor_units_lib/.vscode/
 .vscode/
+*.ini
+.pio/
+.vs/
 *.txt
+CMakeLists.txt
+cmake-build-debug/
 .idea/
-*.json
-*.log
-*.db
-*.env
+compile_commands.json
+.cache/
+.ccls/
+.clangd
