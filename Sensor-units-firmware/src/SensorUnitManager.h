@@ -3,6 +3,8 @@
 #include "global_include.h"
 #include <WiFi.h>
 #include <esp_now.h>
+
+#define MAXPEERS 6
 #if __BYTE_ORDER__ == __LITTLE_ENDIAN__
 #define ____BYTE_ORDER__ __ORDER_BIG__ORDER_BIG_ENDIAN__
 #endif
@@ -14,15 +16,18 @@ public:
   enum SensorUnitStatus { ONLINE = 0, ERROR, OFFLINE };
   SensorUnitManager(const SensorUnitManager &) = delete;
   virtual ~SensorUnitManager();
-  SensorUnitManager(uint8_t **macAdrIn, int numOfSuIn, const char *PMKKEYIN,
-                    const char *LMKKEYIN)
-      : numOfSu{static_cast<size_t>(numOfSuIn)} {
+  SensorUnitManager(uint8_t **macAdrIn, size_t numOfSuIn, const char *PMKKEYIN,
+                    const char **LMKKEYSIN)
+      : numOfSu{numOfSuIn} {
+    memset(suPeerInf, 0, sizeof(suPeerInf));
     for (int i = 0; i < numOfSuIn; i++) {
       memcpy(suPeerInf[i].peer_addr, macAdrIn[i], 6);
+      suPeerInf[i].encrypt = true;
+      memcpy(suPeerInf[i].lmk, LMKKEYSIN[i], 16);
     }
     strncpy(PMKKEY, PMKKEYIN, 16);
-    strncpy(LMKKEY, LMKKEYIN, 16);
   }
+
   virtual void sendToSu(Packet packet, int suNum);
   virtual void handlePacket(const Packet &packet);
   MessageQueue msgQueue{};
@@ -30,13 +35,13 @@ public:
   virtual void initESPNOW();
 
 protected:
-  esp_now_peer_info_t suPeerInf[10]{};
+  esp_now_peer_info_t suPeerInf[MAXPEERS]{};
   size_t numOfSu{};
-  SensorUnitStatus m_status[10]{};
-  Sensors_t sensorsAvlbl[10][3]{};
+  SensorUnitStatus m_status[MAXPEERS]{};
+  Sensors_t sensorsAvlbl[MAXPEERS][3]{};
   unsigned long long msgID{};
-  char PMKKEY[16]{};
-  char LMKKEY[16]{};
+  char PMKKEY[16]{'\0'};
+  char LMKKEYS[MAXPEERS][16]{'\0'};
 };
 
 class WifiSensUnitManager final : public SensorUnitManager {};

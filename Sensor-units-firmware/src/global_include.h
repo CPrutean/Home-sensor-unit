@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/FreeRTOSConfig.h>
+#include <sys/types.h>
 
 #define MAXPACKETSIZE 64
 #define MAXREADINGPERSENSOR 10
@@ -79,17 +80,24 @@ union dataConverter {
   char str[MAXPACKETSIZE];
 };
 
+struct PacketInfo_t {
+  Sensors_t sensor{Sensors_t::NUM_OF_SENSORS};
+  uint8_t ind{255};
+};
+
 struct Packet {
-  enum DataType_T { STRING_T, DOUBLE_T, FLOAT_T, INT_T };
+  enum PacketType_T { PING = 0, ACK, READING, STATUS, NUMTYPES };
+  enum DataType_T { DOUBLE_T, STRING_T, FLOAT_T, INT_T, NULL_T };
+  PacketInfo_t info{};
   uint8_t packetData[MAXPACKETSIZE]{};
   unsigned long long msgID{};
   size_t size{};
   void convert(dataConverter &convert) {
     if (size <= 0) {
-      Serial.print("FAILED TO CONVERT INVALID SIZE: ");
-      Serial.println(size);
       return;
     }
     memcpy(convert.data, packetData, size);
   }
+  PacketType_T type{NUMTYPES};
+  DataType_T dataType{NULL_T};
 };
