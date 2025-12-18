@@ -1,8 +1,8 @@
 #include "SensorUnitManager.h"
-#include "lwipopts.h"
+#include "esp_now.h"
 void SensorUnitManager::sendToSu(Packet packet, int suNum) {
-  esp_err_t result =
-      esp_now_send(m_suMac[suNum], (uint8_t *)&packet, sizeof(packet));
+  esp_err_t result = esp_now_send(suPeerInf[suNum].peer_addr,
+                                  (uint8_t *)&packet, sizeof(packet));
   if (result != ESP_OK) {
     Serial.println("Packet failed to send");
   } else {
@@ -28,10 +28,33 @@ void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo,
   sensUnitMngr->msgQueue.send(packet);
 }
 
+// Will only work if local PMKKEY and LMKKEY variables have been properly
+// initialized
 void SensorUnitManager::initESPNOW() {
-  if (suPeerInf[0].peer_addr[0] == 0) {
-    Serial.println("FAILED TO INIT, CONSTRUCTOR NEVER CALLED");
+  if (PMKKEY[0] == '\0') {
+    Serial.println(
+        "ESPNOW initalization failed due to constructor never being called");
     return;
   }
+
   Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+  if (esp_now_init() != ESP_OK) {
+    Serial.println("Failure initializing ESP-NOW");
+    return;
+  }
+
+  esp_now_set_pmk((uint8_t *)PMKKEY);
+  esp_now_register_recv_cb(esp_now_recv_cb_t(sensUnitManagerRecvCB));
+  esp_now_register_send_cb(esp_now_send_cb_t(sensUnitManagerSendCB));
+
+  for (esp_now_peer_info_t peerInf : suPeerInf) {
+    peerInf.channel = 0;
+    peerInf.encrypt = true;
+    peerInf.ifidx = WIFI_IF_STA;
+    if (esp_now_add_peer(&peerInf) != ESP_OK) {
+      Serial.println("Failed to add a peer please try again");
+    }
+  }
+  Serial.println("Finished ESPNOWINIT");
 }
