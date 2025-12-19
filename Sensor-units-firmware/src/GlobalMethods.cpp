@@ -22,6 +22,13 @@ void initSensorDefinition(SensorDefinition &sensorDef) {
              sizeof(sensorDef.readingStringsArray[0]), "%s", "MOTION");
     sensorDef.numValues = 1;
     break;
+  case (Sensors_t::BASE):
+    snprintf(sensorDef.name, sizeof(sensorDef.name), "%s", "BASE");
+    snprintf(sensorDef.readingStringsArray[0],
+             sizeof(sensorDef.readingStringsArray[0]), "%s", "INIT");
+    snprintf(sensorDef.readingStringsArray[1],
+             sizeof(sensorDef.readingStringsArray[1]), "%s", "STATUS");
+    break;
   default:
     Serial.println("Failed to init");
     break;

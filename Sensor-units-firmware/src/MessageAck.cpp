@@ -17,7 +17,7 @@ void MessageAck::resize() {
   ackArr = newArr;
 }
 
-void MessageAck::insert(unsigned long long msgID, Packet packet, int count) {
+void MessageAck::insert(unsigned long long msgID, int count) {
   if (ackArr == nullptr) {
     Serial.println("Insert failed object was never initialized");
     return;
@@ -25,7 +25,7 @@ void MessageAck::insert(unsigned long long msgID, Packet packet, int count) {
   if (size >= capacity) {
     resize();
   }
-  ackArr[size] = {msgID, packet, count};
+  ackArr[size] = {msgID, count};
   size++;
 }
 

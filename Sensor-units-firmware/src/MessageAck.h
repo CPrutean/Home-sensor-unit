@@ -1,17 +1,12 @@
 #include "global_include.h"
+
 #define BEGINACKLEN 8
-
-struct ackListItem {
-  unsigned long long msgID{};
-  Packet packet{NULL};
-  int count{};
-};
-
 class MessageAck final {
 public:
   MessageAck();
-  void insert(unsigned long long msgID, Packet packet, int count);
-  void remove(unsigned long long msgID);
+  // Returns the msgID of a finished packet list if one exists
+  unsigned long long insert(unsigned long long msgID, const Packet &p);
+  ackListItem remove(unsigned long long msgID);
   ~MessageAck();
 
 private:

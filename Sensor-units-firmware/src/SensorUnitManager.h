@@ -13,11 +13,10 @@
 // sensor sensor units
 class SensorUnitManager {
 public:
-  enum SensorUnitStatus { ONLINE = 0, ERROR, OFFLINE };
   SensorUnitManager(const SensorUnitManager &) = delete;
   virtual ~SensorUnitManager();
-  SensorUnitManager(uint8_t **macAdrIn, size_t numOfSuIn, const char *PMKKEYIN,
-                    const char **LMKKEYSIN)
+  explicit SensorUnitManager(uint8_t **macAdrIn, size_t numOfSuIn,
+                             const char *PMKKEYIN, const char **LMKKEYSIN)
       : numOfSu{numOfSuIn} {
     memset(suPeerInf, 0, sizeof(suPeerInf));
     for (int i = 0; i < numOfSuIn; i++) {
@@ -27,8 +26,8 @@ public:
     }
     strncpy(PMKKEY, PMKKEYIN, 16);
   }
-
-  virtual void sendToSu(Packet packet, int suNum);
+  SensorUnitManager() = delete;
+  virtual void sendToSu(const Packet &p, int suNum);
   virtual void handlePacket(const Packet &packet);
   MessageQueue msgQueue{};
   MessageAck msgAck{};
@@ -36,8 +35,8 @@ public:
 
 protected:
   esp_now_peer_info_t suPeerInf[MAXPEERS]{};
+  SensorUnitStatus suStatus[MAXPEERS]{SensorUnitStatus::NUM_TYPES};
   size_t numOfSu{};
-  SensorUnitStatus m_status[MAXPEERS]{};
   Sensors_t sensorsAvlbl[MAXPEERS][3]{};
   unsigned long long msgID{};
   char PMKKEY[16]{'\0'};

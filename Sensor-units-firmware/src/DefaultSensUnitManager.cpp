@@ -1,6 +1,6 @@
 #include "SensorUnitManager.h"
 #include "esp_now.h"
-void SensorUnitManager::sendToSu(Packet packet, int suNum) {
+void SensorUnitManager::sendToSu(const Packet &packet, int suNum) {
   esp_err_t result = esp_now_send(suPeerInf[suNum].peer_addr,
                                   (uint8_t *)&packet, sizeof(packet));
   if (result != ESP_OK) {

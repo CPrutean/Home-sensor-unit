@@ -7,13 +7,20 @@
 #define MAXREADINGPERSENSOR 10
 
 const char STRSEPER[2] = {'|', '\0'};
-enum class Sensors_t { TEMPERATURE_AND_HUMIDITY = 0, MOTION, NUM_OF_SENSORS };
+enum class Sensors_t {
+  TEMPERATURE_AND_HUMIDITY = 0,
+  MOTION,
+  BASE,
+  NUM_OF_SENSORS
+};
+
+enum class SensorUnitStatus { ONLINE = 0, ERROR, OFFLINE, NUM_TYPES };
+
 struct SensorDefinition {
   Sensors_t sensor{Sensors_t::NUM_OF_SENSORS};
   size_t numValues{};
   char name[30]{'\0'};
   char readingStringsArray[3][10]{{'\0'}};
-
   void toString(char *buffer, size_t sizeOfBuffer) {
     if (sizeOfBuffer == 0)
       return;
@@ -86,7 +93,7 @@ struct PacketInfo_t {
 };
 
 struct Packet {
-  enum PacketType_T { PING = 0, ACK, READING, STATUS, NUMTYPES };
+  enum PacketType_T { PING = 0, ACK, READING, FIN, NUMTYPES };
   enum DataType_T { DOUBLE_T, STRING_T, FLOAT_T, INT_T, NULL_T };
   PacketInfo_t info{};
   uint8_t packetData[MAXPACKETSIZE]{};
@@ -100,4 +107,11 @@ struct Packet {
   }
   PacketType_T type{NUMTYPES};
   DataType_T dataType{NULL_T};
+};
+
+// When the messageAck recieves the FIN with the corresponding msgID the
+// ackListItem returns
+struct ackListItem {
+  unsigned long long msgID{255};
+  Packet packList[8]{};
 };
