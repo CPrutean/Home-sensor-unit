@@ -1,4 +1,5 @@
 #include "MessageAck.h"
+#include <optional>
 
 MessageAck::MessageAck() {
   ackArr = new ackListItem[BEGINACKLEN];
@@ -17,45 +18,7 @@ void MessageAck::resize() {
   ackArr = newArr;
 }
 
-void MessageAck::insert(unsigned long long msgID, int count) {
-  if (ackArr == nullptr) {
-    Serial.println("Insert failed object was never initialized");
-    return;
-  }
-  if (size >= capacity) {
-    resize();
-  }
-  ackArr[size] = {msgID, count};
-  size++;
-}
+std::optional<ackListItem> MessageAck::insert(unsigned long long msgID,
+                                              const Packet &p) {}
 
-void MessageAck::remove(unsigned long long msgID) {
-  if (ackArr == nullptr) {
-    Serial.println("remove failed object was never initialized");
-    return;
-  }
-  bool found = false;
-  int i;
-  for (i = 0; i < size; i++) {
-    if (ackArr[i].msgID == msgID) {
-      found = true;
-      break;
-    }
-  }
-
-  if (!found) {
-    Serial.println("Object was never found");
-    return;
-  }
-
-  if (ackArr[i].count > 0) {
-    ackArr[i].count--;
-    return;
-  } else {
-    for (int j = i; j < size - 1; j++) {
-      ackArr[j] = ackArr[j + 1];
-    }
-    size--;
-    arrSize -= sizeof(ackListItem);
-  }
-}
+void MessageAck::remove(unsigned long long msgID) {}
