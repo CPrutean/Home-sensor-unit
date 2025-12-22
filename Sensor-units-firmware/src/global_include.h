@@ -1,7 +1,11 @@
+#include "optional.hpp"
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/FreeRTOSConfig.h>
-#include <sys/types.h>
+namespace std {
+template <typename T> using optional = tl::optional<T>;
+constexpr auto nullopt = tl::nullopt;
+} // namespace std
 
 #define MAXPACKETSIZE 64
 #define MAXREADINGPERSENSOR 10
@@ -114,4 +118,5 @@ struct Packet {
 struct ackListItem {
   unsigned long long msgID{255};
   Packet packList[8]{};
+  size_t packetCount{0};
 };

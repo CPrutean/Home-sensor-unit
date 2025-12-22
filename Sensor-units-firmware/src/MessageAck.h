@@ -5,8 +5,8 @@ class MessageAck final {
 public:
   MessageAck();
   // Returns the msgID of a finished packet list if one exists
-  unsigned long long insert(unsigned long long msgID, const Packet &p);
-  ackListItem remove(unsigned long long msgID);
+  std::optional<ackListItem> insert(unsigned long long msgID, const Packet &p);
+  void remove(unsigned long long msgID);
   ~MessageAck();
 
 private:
