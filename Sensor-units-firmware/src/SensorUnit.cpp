@@ -1,24 +1,24 @@
 #include "SensorUnits.h"
 #include "esp_now.h"
-SensorUnit::SensorUnit(uint8_t *cuMac, const char *PMKKEYIN,
-                       const char *LMKKEYIN, DHT *tempIn, PIR *motionIn)
-    : temp{tempIn}, motion{motionIn} {
+SensorUnit::SensorUnit(uint8_t *cuMac, const char *PMKKEYIN, const char *LMKKEYIN, DHT *tempIn, PIR *motionIn)
+: temp{tempIn}, motion{motionIn} {
   memcpy(cuPeerInf.peer_addr, cuMac, 6);
   memcpy(cuPeerInf.lmk, LMKKEYIN, 16);
+  uint8_t count{0};
   if (temp != nullptr) {
-    sensorsAvlbl[0].sensor = Sensors_t::TEMPERATURE_AND_HUMIDITY;
+    sensorsAvlbl[count++].sensor = Sensors_t::TEMPERATURE_AND_HUMIDITY;
     initSensorDefinition(sensorsAvlbl[0]);
   }
 
   if (motion != nullptr) {
-    sensorsAvlbl[1].sensor = Sensors_t::MOTION;
+    sensorsAvlbl[count++].sensor = Sensors_t::MOTION;
     initSensorDefinition(sensorsAvlbl[1]);
   }
+  sensorsAvlbl[count] = NULL;
   memcpy(PMKKEY, PMKKEYIN, 16);
 }
 
-void sensUnitRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data,
-                    int dataLen) {
+void sensUnitRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, int dataLen) {
   if (sensUnitPtr == nullptr) {
     Serial.println("sensUnitPtr was never initialized");
     return;
@@ -62,4 +62,52 @@ void SensorUnit::initESPNOW() {
   Serial.println("Finished initializing");
 }
 
-void SensorUnit::handlePacket(const Packet &p) {}
+void SensorUnit::handlePacket(const Packet &p) {
+  Packet pac{};
+  unsigned long long msgID{p.msgID};
+  dataConverter d{};
+  pac.type = Packet::ACK;
+  pac.dataType = Packet::NULL_T;
+  sendPacket(pac);
+  if (p.type == Packet::PING && p.info.sensor != Sensors_t::BASE) {
+    sendAllPackets(*this);
+  } else if (p.type == Packet::PING){
+    int i{0};
+    pac.dataType = Packet::STRING_T;
+    while (sensorsAvlbl[i] != NULL) {
+      d.str[0] = '\0'; 
+      sensorsAvlbl[i].toString(d.str, sizeof(d.str));
+      pac.writeToPacket(d, strlen(d.str));
+      sendPacket(pac);
+      i++;
+    }
+  } else {
+    pac.type = Packet::READING;
+    pac.dataType = Packet::STRING_T;
+    d.str[0] = '\0';
+    snprintf(d.str, sizeof(d), "%s", "INVALID REQUEST");
+    pac.writeToPacket(d, strlen(d.str)); 
+  }
+
+
+  pac.type = Packet::FIN;
+  pac.dataType = Packet::NULL_T;
+  sendPacket(pac);
+}
+
+void sendAllPackets(SensorUnit& sensUnits) {
+
+}
+
+
+void tempCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
+
+}
+
+void motionCommands(SensorUnit & sensUnit, Packet& p, uint8_t ind) {
+
+}
+
+void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
+
+}

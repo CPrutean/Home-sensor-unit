@@ -8,26 +8,20 @@ void initSensorDefinition(SensorDefinition &sensorDef) {
   // DEFINE NEW SENSORS HERE
   switch (sensorDef.sensor) {
   case (Sensors_t::TEMPERATURE_AND_HUMIDITY):
-    snprintf(sensorDef.name, sizeof(sensorDef.name), "%s",
-             "TEMPERATURE_AND_HUMIDITY");
-    snprintf(sensorDef.readingStringsArray[0],
-             sizeof(sensorDef.readingStringsArray[0]), "%s", "TEMPERATURE");
-    snprintf(sensorDef.readingStringsArray[1],
-             sizeof(sensorDef.readingStringsArray[1]), "%s", "HUMIDITY");
+    snprintf(sensorDef.name, sizeof(sensorDef.name), "%s", "TEMPERATURE_AND_HUMIDITY");
+    snprintf(sensorDef.readingStringsArray[0], sizeof(sensorDef.readingStringsArray[0]), "%s", "TEMPERATURE");
+    snprintf(sensorDef.readingStringsArray[1], sizeof(sensorDef.readingStringsArray[1]), "%s", "HUMIDITY");
     sensorDef.numValues = 2;
     break;
   case (Sensors_t::MOTION):
     snprintf(sensorDef.name, sizeof(sensorDef.name), "%s", "MOTION_SENSOR");
-    snprintf(sensorDef.readingStringsArray[0],
-             sizeof(sensorDef.readingStringsArray[0]), "%s", "MOTION");
+    snprintf(sensorDef.readingStringsArray[0], sizeof(sensorDef.readingStringsArray[0]), "%s", "MOTION");
     sensorDef.numValues = 1;
     break;
   case (Sensors_t::BASE):
     snprintf(sensorDef.name, sizeof(sensorDef.name), "%s", "BASE");
-    snprintf(sensorDef.readingStringsArray[0],
-             sizeof(sensorDef.readingStringsArray[0]), "%s", "INIT");
-    snprintf(sensorDef.readingStringsArray[1],
-             sizeof(sensorDef.readingStringsArray[1]), "%s", "STATUS");
+    snprintf(sensorDef.readingStringsArray[0], sizeof(sensorDef.readingStringsArray[0]), "%s", "INIT");
+    sensorDef.numValues = 1;
     break;
   default:
     Serial.println("Failed to init");

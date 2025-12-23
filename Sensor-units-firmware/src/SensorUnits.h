@@ -1,8 +1,8 @@
+#pragma once
 #include "MessageQueue.h"
 #include "global_include.h"
 #include <DHT.h>
 #include <PIR.h>
-#include <WiFi.h>
 #include <esp_now.h>
 // As more sensors get added certain things will be added onto but the
 // SensorUnitManager should behave the exact same
@@ -12,16 +12,14 @@ public:
   void handlePacket(const Packet &packet);
   MessageQueue msgQueue{};
   void initESPNOW();
-  explicit SensorUnit(uint8_t *cuMac, const char *PMKKEYIN,
-                      const char *LMKKEYIN, DHT *tempIn = nullptr,
-                      PIR *motion = nullptr);
+  explicit SensorUnit(uint8_t *cuMac, const char *PMKKEYIN, const char *LMKKEYIN, DHT *tempIn = nullptr, PIR *motion = nullptr);
+  void sendPacket(const Packet& p);
   SensorUnit() = delete;
-
 private:
   esp_now_peer_info_t cuPeerInf{};
   char PMKKEY[16]{};
   char CULMKKEY[16]{};
-  SensorDefinition sensorsAvlbl[3]{};
+  SensorDefinition sensorsAvlbl[static_cast<int>(Sensors_t::NUM_OF_SENSORS)]{NULL};
   DHT *temp{nullptr};
   PIR *motion{nullptr};
 };

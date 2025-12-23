@@ -17,3 +17,4 @@ Currently the project is facing major refactoring changes since the first instan
 
 Some of the lessons I learned where learning to take different approaches into account. As mentioned above the Messages would rely on string parsing back and forth which was slow and very computation heavy for a device such as a micro-controller which has much weaker resources available to it. Additionally I learned a lot about design principles, security, and data reliability building my own systems and working on recreating them myself. 
 
+

@@ -1,7 +1,5 @@
+#include "global_include.h"
 #include "MessageQueue.h"
-#include "freertos/idf_additions.h"
-#include <FreeRTOS.h>
-#include <queue.h>
 
 MessageQueue::MessageQueue() {
   queueHandle = xQueueCreate(MAXQUEUELEN, sizeof(Packet));
@@ -21,11 +19,9 @@ MessageQueue::~MessageQueue() {
 #define QUEUE_TIMEOUT_TICKS pdMS_TO_TICKS(100)
 
 bool MessageQueue::send(const Packet &packet) {
-  return xQueueSend(queueHandle, (const void *)&packet, QUEUE_TIMEOUT_TICKS) ==
-         pdPASS;
+  return xQueueSend(queueHandle, (const void *)&packet, QUEUE_TIMEOUT_TICKS) == pdPASS;
 }
 
 bool MessageQueue::receive(Packet &packet) {
-  return xQueueReceive(queueHandle, (void *)&packet, QUEUE_TIMEOUT_TICKS) ==
-         pdTRUE;
+  return xQueueReceive(queueHandle, (void *)&packet, QUEUE_TIMEOUT_TICKS) ==pdTRUE;
 }
