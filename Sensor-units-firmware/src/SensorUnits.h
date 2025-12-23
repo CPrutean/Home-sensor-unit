@@ -15,13 +15,15 @@ public:
   explicit SensorUnit(uint8_t *cuMac, const char *PMKKEYIN, const char *LMKKEYIN, DHT *tempIn = nullptr, PIR *motion = nullptr);
   void sendPacket(const Packet& p);
   SensorUnit() = delete;
+  friend void sendAllPackets(SensorUnit& sensUnit);
+  DHT *temp{nullptr};
+  PIR *motion{nullptr};
+  void initSensorDefinition(SensorDefinition& SensorDefinition);
 private:
   esp_now_peer_info_t cuPeerInf{};
   char PMKKEY[16]{};
   char CULMKKEY[16]{};
   SensorDefinition sensorsAvlbl[static_cast<int>(Sensors_t::NUM_OF_SENSORS)]{NULL};
-  DHT *temp{nullptr};
-  PIR *motion{nullptr};
 };
 
 extern SensorUnit *sensUnitPtr{nullptr};

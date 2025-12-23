@@ -9,10 +9,10 @@
 #define ____BYTE_ORDER__ __ORDER_BIG__ORDER_BIG_ENDIAN__
 #endif
 
-// SensorUnitManagers are responsible for sending and receiving messages between
-// sensor sensor units
+// SensorUnitManagers are responsible for sending and receiving messages between sensor units
 class SensorUnitManager final {
 public:
+  enum SensorUnitStatus:uint8_t{ONLINE, ERROR, OFFLINE, NUMTYPES};
   SensorUnitManager(const SensorUnitManager &) = delete;
   virtual ~SensorUnitManager();
   explicit SensorUnitManager(uint8_t **macAdrIn, size_t numOfSuIn, const char *PMKKEYIN, const char **LMKKEYSIN)
@@ -34,7 +34,7 @@ public:
   void initESPNOW();
 protected:
   esp_now_peer_info_t suPeerInf[MAXPEERS]{};
-  SensorUnitStatus suStatus[MAXPEERS]{SensorUnitStatus::NUM_TYPES};
+  SensorUnitStatus suStatus[MAXPEERS]{SensorUnitManager::NUMTYPES};
   size_t numOfSu{};
   Sensors_t sensorsAvlbl[MAXPEERS][3]{};
   unsigned long long msgID{};

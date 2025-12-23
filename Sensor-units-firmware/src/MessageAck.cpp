@@ -1,12 +1,18 @@
 #include "MessageAck.h"
 #define MAXTIMEOUT 10000
 
+/*
+@breif: Default constructor for MessageAck object
+*/
 MessageAck::MessageAck() {
   ackArr = new ackListItem[BEGINACKLEN];
   arrSize = sizeof(arrSize);
   mutex = xSemaphoreCreateRecursiveMutex();
 }
 
+/*
+@breif: Resizes internal array for improved performance when needed
+*/
 void MessageAck::resize() {
   if (!xSemaphoreTakeRecursive(mutex, portMAX_DELAY) == pdTRUE) {
     Serial.println("Failed to take MUTEX");
@@ -27,7 +33,12 @@ void MessageAck::resize() {
 }
 
 
-etl::optional<ackListItem> MessageAck::insertPacket(unsigned long long msgID, const Packet &p) {
+/*
+@breif: inserts a recieved packet and groups them with similar messages with the same request ID
+@param: const Packet& p: Packet recieved to be grouped with internal msgID 
+@return: will return an ackListItem when the final packet is recieved with the Packet::FIN type
+*/
+etl::optional<ackListItem> MessageAck::insertPacket(const Packet &p) {
   if (!xSemaphoreTakeRecursive(mutex, portMAX_DELAY) == pdTRUE) {
     Serial.println("Failed to take mutex in MessageAck");
     return etl::nullopt;
@@ -37,7 +48,7 @@ etl::optional<ackListItem> MessageAck::insertPacket(unsigned long long msgID, co
   bool found = false;
   int i;
   for (i = 0; i < size; i++) {
-    if (msgID == ackArr[i].msgID) {
+    if (p.msgID == ackArr[i].msgID) {
       found = true;
       break;
     }
@@ -58,6 +69,10 @@ etl::optional<ackListItem> MessageAck::insertPacket(unsigned long long msgID, co
   }
 }
 
+/*
+@breif: removes an ackArrItem based on the group ID passed
+@param unsigned long long msgID: message group ID to be removed
+*/
 void MessageAck::removeAckArrItem(unsigned long long msgID) {
   if (!xSemaphoreTakeRecursive(mutex, portMAX_DELAY) == pdTRUE) {
     Serial.println("Failed to take mutex");
@@ -86,7 +101,10 @@ void MessageAck::removeAckArrItem(unsigned long long msgID) {
   size--;
   xSemaphoreGiveRecursive(mutex);
 }
-
+/*
+@breif: creates a new ackListItem object with a new msg groupID
+@param unsigned long long msgID: message group ID to associate with different packets
+*/
 void MessageAck::addNewAckArrItem(unsigned long long msgID) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
@@ -102,7 +120,9 @@ void MessageAck::addNewAckArrItem(unsigned long long msgID) {
   xSemaphoreGiveRecursive(mutex);
 }
 
-
+/*
+@breif: destructor frees internal ackListItem array
+*/
 MessageAck::~MessageAck() {
   delete[] ackArr;
 }

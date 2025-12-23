@@ -5,7 +5,7 @@
 class MessageAck final {
 public:
   MessageAck();
-  etl::optional<ackListItem> insertPacket(unsigned long long msgID, const Packet &p);
+  etl::optional<ackListItem> insertPacket(const Packet &p);
   void addNewAckArrItem(unsigned long long msgID);
   void removeAckArrItem(unsigned long long msgID);
   void removeTimedOutReq(int* suNumList);
