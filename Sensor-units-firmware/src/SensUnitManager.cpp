@@ -1,8 +1,7 @@
 #include "SensorUnitManager.h"
 #include "esp_now.h"
 void SensorUnitManager::sendToSu(const Packet &packet, int suNum) {
-  esp_err_t result = esp_now_send(suPeerInf[suNum].peer_addr,
-                                  (uint8_t *)&packet, sizeof(packet));
+  esp_err_t result = esp_now_send(suPeerInf[suNum].peer_addr, (uint8_t *)&packet, sizeof(packet));
   if (result != ESP_OK) {
     Serial.println("Packet failed to send");
   } else {
@@ -20,8 +19,7 @@ void sensUnitManagerSendCB(const uint8_t *mac, esp_now_send_status_t status) {
   }
 }
 
-void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo,
-                           const uint8_t *data, int dataLen) {
+void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, int dataLen) {
   Packet packet{};
   memcpy(&packet, data, sizeof(Packet));
 

@@ -1,5 +1,5 @@
+#pragma once
 #include "global_include.h"
-#include <Arduino.h>
 #define MAXQUEUELEN 32
 class MessageQueue {
 public:
