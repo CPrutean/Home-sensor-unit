@@ -108,36 +108,43 @@ struct SensorDefinition {
 
   //Deserializes a sensor definition
   void fromString(char *buffer, size_t size) {
-    if (size == 0 || buffer == nullptr) {
-      Serial.println("FAILED TO DESERIALIZE: BUFFER INVALID");
-      return;
-    }
+  if (size == 0 || buffer == nullptr) {
+    Serial.println("FAILED TO DESERIALIZE: BUFFER INVALID");
+    return;
+  }
 
-    int ind1 = 0;
-    int tokenCount = 0;
-    int arrayIndex = 0;
-    numValues = 0;
+  int ind1 = 0;
+  int tokenCount = 0;
+  int arrayIndex = 0;
+  numValues = 0; 
 
-    for (int i = 0; i < size; i++) {
-      if (buffer[i] == STRSEPER[0] || buffer[i] == '\0') {
-        int tokenLen = i - ind1;
-        if (tokenCount == 0) {
-          snprintf(name, sizeof(name), "%.*s", tokenLen, buffer + ind1);
-        } else if (tokenCount % 2 != 0) {
-          arrayIndex = (tokenCount - 1) / 2;
+  for (int i = 0; i < size; i++) {
+    if (buffer[i] == STRSEPER[0] || buffer[i] == '\0') {
+      int tokenLen = i - ind1;
+
+      if (tokenCount == 0) {
+        snprintf(name, sizeof(name), "%.*s", tokenLen, buffer + ind1);
+      } 
+      else if (tokenCount % 2 != 0) {
+        arrayIndex = (tokenCount - 1) / 2;
+        if (arrayIndex < 10) { 
           snprintf(readingStringsArray[arrayIndex], sizeof(readingStringsArray[arrayIndex]), "%.*s", tokenLen, buffer + ind1);
-        } else {
-          char tempNum[16];
-          snprintf(tempNum, sizeof(tempNum), "%.*s", tokenLen, buffer + ind1);
-          msgType[arrayIndex] = static_cast<Packet::PacketType_T>(tempNum[0]);
-          numValues++;
         }
-
-        tokenCount++;
-        ind1 = i + 1;
+      } 
+      else {
+        char digitChar = buffer[ind1];
+        if (digitChar >= '0' && digitChar <= '9') {
+          msgType[arrayIndex] = static_cast<Packet::PacketType_T>(digitChar-'0');
+        } else {
+          msgType[arrayIndex] = Packet::NUMTYPES; 
+        }
+        numValues++;
       }
-    }
 
+      tokenCount++;
+      ind1 = i + 1; 
+    }
+  } 
   }
 };
 
