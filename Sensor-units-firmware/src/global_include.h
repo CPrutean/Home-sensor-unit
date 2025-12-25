@@ -33,7 +33,7 @@ struct PacketInfo_t {
 
 //Union to convert data iteration
 union dataConverter {
-  uint8_t data[MAXPACKETSIZE]{};
+  uint8_t data[MAXPACKETSIZE]{0};
   int i;
   float f;
   double d;

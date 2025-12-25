@@ -53,7 +53,7 @@ void SensorUnitManager::initESPNOW() {
   esp_now_register_recv_cb(esp_now_recv_cb_t(sensUnitManagerRecvCB));
   esp_now_register_send_cb(esp_now_send_cb_t(sensUnitManagerSendCB));
 
-  for (esp_now_peer_info_t peerInf : suPeerInf) {
+  for (auto &peerInf : suPeerInf) {
     peerInf.channel = 0;
     peerInf.encrypt = true;
     peerInf.ifidx = WIFI_IF_STA;
@@ -62,4 +62,28 @@ void SensorUnitManager::initESPNOW() {
     }
   }
   Serial.println("Finished ESPNOWINIT");
+}
+
+// Minimal handler for a grouped set of packets received from a Sensor Unit
+// This can be expanded to aggregate readings and update internal state.
+void SensorUnitManager::handlePacket(const ackListItem &packetGroup) {
+  // Example processing: iterate through packets and log or handle types
+  for (size_t i = 0; i < packetGroup.packetCount; ++i) {
+    const Packet &p = packetGroup.packetList[i];
+    switch (p.type) {
+      case Packet::READING:
+        // In a fuller implementation, convert and store readings per SU
+        Serial.println("READING packet processed");
+        break;
+      case Packet::ACK:
+        Serial.println("ACK received from SU");
+        break;
+      case Packet::POST:
+        Serial.println("POST response processed");
+        break;
+      default:
+        Serial.println("Unhandled packet type in group");
+        break;
+    }
+  }
 }
