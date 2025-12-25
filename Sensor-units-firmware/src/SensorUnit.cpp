@@ -7,6 +7,8 @@ void motionCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind);
 void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind);
 void initSensUnit(SensorUnit& sensUnit);
 void handlePostRequests(SensorUnit& sensUnit);
+// Forward declaration to allow use before definition
+void writeErrorMsg(Packet& p, dataConverter& d , std::string_view errormsg);
 
 using defaultFnMethods = void(*)(SensorUnit&, Packet& p, uint8_t);
 
@@ -177,6 +179,7 @@ void SensorUnit::handlePacket(const Packet &p) {
       }      
     }
 
+    dataConverter d; // used for error reporting
     if (sensorsAvlbl[i].msgType[p.info.ind] != Packet::POST) {
       writeErrorMsg(pac, d, "INVALID COMMAND SENT POST VALUE WAS FALSE");
       sendPacket(pac);
@@ -187,8 +190,8 @@ void SensorUnit::handlePacket(const Packet &p) {
     func = reinterpret_cast<defaultFnMethods>(sensorsAvlbl[i].fnMemAdr);
     func(*this, pac, p.info.ind);
     sendPacket(pac);
-
   } else [[unlikely]] {
+    dataConverter d; // used for error reporting
     writeErrorMsg(pac, d, "INVALID PACKET TYPE");
     sendPacket(pac);
   }
@@ -257,7 +260,18 @@ void motionCommands(SensorUnit & sensUnit, Packet& p, uint8_t ind) {
 }
 
 void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
-  
+  dataConverter d;
+  if (ind == 0) {
+    int i{0};
+    for (i = 0; i < sensUnit.sensCount; i++) {
+      d.str[0] = '\0';
+      sensUnit.sensorsAvlbl[i].toString(d.str, sizeof(d.str));
+      p.writeToPacket(d, sizeof(d));
+      sensUnit.sendPacket(p);
+    }
+  } else {
+    writeErrorMsg(p, d, "INVALID IND");
+  }
 }
 
 

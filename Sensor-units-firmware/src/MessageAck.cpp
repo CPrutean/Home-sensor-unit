@@ -6,7 +6,7 @@
 */
 MessageAck::MessageAck() {
   ackArr = new ackListItem[BEGINACKLEN];
-  arrSize = sizeof(arrSize);
+  arrSize = BEGINACKLEN;
   mutex = xSemaphoreCreateRecursiveMutex();
 }
 
@@ -14,7 +14,7 @@ MessageAck::MessageAck() {
 @breif: Resizes internal array for improved performance when needed
 */
 void MessageAck::resize() {
-  if (!xSemaphoreTakeRecursive(mutex, portMAX_DELAY) == pdTRUE) {
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take MUTEX");
     return;
   }
@@ -26,10 +26,13 @@ void MessageAck::resize() {
     return;
   }
 
-  ackListItem *newArr = new ackListItem[capacity * 2];
-  memcpy(newArr, ackArr, sizeof(ackArr));
-  capacity *= 2;
+  size_t newCapacity = capacity * 2;
+  ackListItem *newArr = new ackListItem[newCapacity];
+  memcpy(newArr, ackArr, sizeof(ackListItem) * size);
+  delete[] ackArr;
+  capacity = newCapacity;
   ackArr = newArr;
+  xSemaphoreGiveRecursive(mutex);
 }
 
 
@@ -39,7 +42,7 @@ void MessageAck::resize() {
 @return: will return an ackListItem when the final packet is recieved with the Packet::FIN type
 */
 etl::optional<ackListItem> MessageAck::insertPacket(const Packet &p) {
-  if (!xSemaphoreTakeRecursive(mutex, portMAX_DELAY) == pdTRUE) {
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex in MessageAck");
     return etl::nullopt;
   }
@@ -64,8 +67,9 @@ etl::optional<ackListItem> MessageAck::insertPacket(const Packet &p) {
     xSemaphoreGiveRecursive(mutex);
     return etl::nullopt;
   } else {
+    ackListItem ret = ackArr[i];
     xSemaphoreGiveRecursive(mutex);
-    return ackArr[i];
+    return ret;
   }
 }
 
@@ -74,7 +78,7 @@ etl::optional<ackListItem> MessageAck::insertPacket(const Packet &p) {
 @param unsigned long long msgID: message group ID to be removed
 */
 void MessageAck::removeAckArrItem(unsigned long long msgID) {
-  if (!xSemaphoreTakeRecursive(mutex, portMAX_DELAY) == pdTRUE) {
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
     return;
   }
@@ -95,7 +99,7 @@ void MessageAck::removeAckArrItem(unsigned long long msgID) {
     return;
   }
 
-  for (int j{i}; j < capacity-1; j++) {
+  for (int j{i}; j < static_cast<int>(size)-1; j++) {
     ackArr[j] = ackArr[j+1];
   }
   size--;
@@ -116,7 +120,35 @@ void MessageAck::addNewAckArrItem(unsigned long long msgID) {
     resize();
   }
   ackArr[size] = ackListItem{msgID, millis()};
+  size++;
 
+  xSemaphoreGiveRecursive(mutex);
+}
+
+// Remove timed out requests and return list of SU indexes that timed out
+void MessageAck::removeTimedOutReq(int* suNumList) {
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
+    Serial.println("Failed to take mutex");
+    return;
+  }
+
+  const unsigned long now = millis();
+  size_t writeIdx = 0;
+  for (size_t readIdx = 0; readIdx < size; ++readIdx) {
+    unsigned long elapsed = now - ackArr[readIdx].postTime;
+    if (elapsed > MAXTIMEOUT) {
+      // Optionally record timed out SU index if mapping exists; placeholder -1
+      if (suNumList) {
+        suNumList[readIdx] = -1;
+      }
+      continue; // drop this item
+    }
+    if (writeIdx != readIdx) {
+      ackArr[writeIdx] = ackArr[readIdx];
+    }
+    ++writeIdx;
+  }
+  size = writeIdx;
   xSemaphoreGiveRecursive(mutex);
 }
 

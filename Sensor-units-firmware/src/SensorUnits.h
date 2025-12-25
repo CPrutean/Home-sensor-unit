@@ -16,6 +16,7 @@ public:
   void sendPacket(const Packet& p);
   SensorUnit() = delete;
   friend void sendAllPackets(SensorUnit& sensUnit);
+  friend void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind);
   DHT *temp{nullptr};
   PIR *motion{nullptr};
   void initSensorDefinition(SensorDefinition& SensorDefinition);

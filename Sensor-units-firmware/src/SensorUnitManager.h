@@ -14,7 +14,6 @@ public:
   virtual ~SensorUnitManager();
   explicit SensorUnitManager(uint8_t **macAdrIn, size_t numOfSuIn, const char *PMKKEYIN, const char **LMKKEYSIN)
   : numOfSu{numOfSuIn} {
-
     memset(suPeerInf, 0, sizeof(suPeerInf));
     for (int i = 0; i < numOfSuIn; i++) {
       memcpy(suPeerInf[i].peer_addr, macAdrIn[i], 6);
@@ -25,7 +24,7 @@ public:
   }
   SensorUnitManager() = delete;
   void sendToSu(const Packet &p, int suNum);
-  void handlePacket(const Packet &packet);
+  void handlePacket(const ackListItem &packetGroup);
   MessageQueue msgQueue{};
   MessageAck msgAck{};
   void initESPNOW();
