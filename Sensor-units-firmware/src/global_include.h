@@ -83,8 +83,8 @@ struct SensorDefinition {
 
   void toString(char *buffer, size_t sizeOfBuffer) {
     if (sizeOfBuffer == 0 || buffer == nullptr) {
-        Serial.println("FAILED TO SERIALIZE: BUFFER INVALID");
-        return;
+      Serial.println("FAILED TO SERIALIZE: BUFFER INVALID");
+      return;
     }
 
     size_t offset = 0;
@@ -96,33 +96,48 @@ struct SensorDefinition {
     offset += written;
 
     for (int i = 0; i < numValues; i++) {
-        written = snprintf(buffer + offset, sizeOfBuffer - offset, "%s%s", readingStringsArray[i], STRSEPER);
-        if (written < 0 || (size_t)written >= sizeOfBuffer - offset) break;
-        offset += written;
+      written = snprintf(buffer + offset, sizeOfBuffer - offset, "%s%s", readingStringsArray[i], STRSEPER);
+      if (written < 0 || (size_t)written >= sizeOfBuffer - offset) break;
+      offset += written;
 
-        written = snprintf(buffer + offset, sizeOfBuffer - offset, "%d%s", static_cast<int>(msgType[i]), STRSEPER);
-        if (written < 0 || (size_t)written >= sizeOfBuffer - offset) break;
-        offset += written;
+      written = snprintf(buffer + offset, sizeOfBuffer - offset, "%d%s", static_cast<int>(msgType[i]), STRSEPER);
+      if (written < 0 || (size_t)written >= sizeOfBuffer - offset) break;
+      offset += written;
     }
   }
 
   //Deserializes a sensor definition
   void fromString(char *buffer, size_t size) {
+    if (size == 0 || buffer == nullptr) {
+      Serial.println("FAILED TO DESERIALIZE: BUFFER INVALID");
+      return;
+    }
+
     int ind1 = 0;
-    int count = 0;
-    int arrIndex = 0;
+    int tokenCount = 0;
+    int arrayIndex = 0;
+    numValues = 0;
 
-    for (int i{0}; i < size; i++) {
-      if (buffer[i] == STRSEPER[0]) {
-        if (count == 0) {
-          
-        } else if (count%2 == 0) {
-
+    for (int i = 0; i < size; i++) {
+      if (buffer[i] == STRSEPER[0] || buffer[i] == '\0') {
+        int tokenLen = i - ind1;
+        if (tokenCount == 0) {
+          snprintf(name, sizeof(name), "%.*s", tokenLen, buffer + ind1);
+        } else if (tokenCount % 2 != 0) {
+          arrayIndex = (tokenCount - 1) / 2;
+          snprintf(readingStringsArray[arrayIndex], sizeof(readingStringsArray[arrayIndex]), "%.*s", tokenLen, buffer + ind1);
         } else {
-
+          char tempNum[16];
+          snprintf(tempNum, sizeof(tempNum), "%.*s", tokenLen, buffer + ind1);
+          msgType[arrayIndex] = static_cast<Packet::PacketType_T>(tempNum[0]);
+          numValues++;
         }
+
+        tokenCount++;
+        ind1 = i + 1;
       }
     }
+
   }
 };
 
