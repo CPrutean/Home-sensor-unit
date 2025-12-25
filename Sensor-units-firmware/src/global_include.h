@@ -10,7 +10,9 @@
 #define MAXPACKETSIZE 96 
 #define MAXREADINGPERSENSOR 10
 
+
 const char STRSEPER[2] = {'|', '\0'};
+
 
 /*
 @breif: enum for different types of sensors
@@ -27,6 +29,15 @@ enum class Sensors_t :uint8_t {
 struct PacketInfo_t {
   Sensors_t sensor{Sensors_t::NUM_OF_SENSORS};
   uint8_t ind{255};
+};
+
+//Union to convert data iteration
+union dataConverter {
+  uint8_t data[MAXPACKETSIZE]{};
+  int i;
+  float f;
+  double d;
+  char str[MAXPACKETSIZE];
 };
 
 
@@ -62,100 +73,63 @@ struct Packet {
 //Will be sent to the SensorUnitManager over a string to let the SensorUnitManager 
 //know what sensor units are available
 struct SensorDefinition {
-  uint8_t numValues{};
-  Sensors_t sensor{Sensors_t::NUM_OF_SENSORS};
-  char name[30]{'\0'};
-  char readingStringsArray[2][12]{{'\0'}};
+  char readingStringsArray[2][12]{{'\0'}, {'\0'}};
+  char name[20]{'\0'};
   Packet::PacketType_T msgType[2]{Packet::NUMTYPES}; //Should only ever be reading or post, other methods will throw errors if this isnt true
-  void *fnParam{nullptr}; //Functions should have a param for the packet and the index as well as a reference to the sensorUnit
-  //Serializes the sensor unit for transmission over a string
-  void toString(char *buffer, size_t sizeOfBuffer) {
-    if (sizeOfBuffer == 0)
-      return;
+  Sensors_t sensor{Sensors_t::NUM_OF_SENSORS};
+  uint8_t numValues{};
+  void* fnMemAdr{nullptr};
 
-    buffer[0] = '\0';
-    size_t currentLen = 0;
+
+  void toString(char *buffer, size_t sizeOfBuffer) {
+    if (sizeOfBuffer == 0 || buffer == nullptr) {
+        Serial.println("FAILED TO SERIALIZE: BUFFER INVALID");
+        return;
+    }
+
+    size_t offset = 0;
     int written = 0;
 
-    written = snprintf(buffer, sizeOfBuffer, "%s%s", name, STRSEPER);
-    if (written < 0 || (size_t)written >= sizeOfBuffer)
-      return;
-    currentLen += written;
+    written = snprintf(buffer + offset, sizeOfBuffer - offset, "%s%s", name, STRSEPER);
+    
+    if (written < 0 || (size_t)written >= sizeOfBuffer - offset) return; 
+    offset += written;
 
-    for (size_t i = 0; i < numValues; i++) {
-      size_t remainingSpace = sizeOfBuffer - currentLen;
-      written = snprintf(buffer + currentLen, remainingSpace, "%s%s", readingStringsArray[i], STRSEPER);
-      if (written < 0 || (size_t)written >= remainingSpace) break;
-      currentLen += written;
+    for (int i = 0; i < numValues; i++) {
+        written = snprintf(buffer + offset, sizeOfBuffer - offset, "%s%s", readingStringsArray[i], STRSEPER);
+        if (written < 0 || (size_t)written >= sizeOfBuffer - offset) break;
+        offset += written;
+
+        written = snprintf(buffer + offset, sizeOfBuffer - offset, "%d%s", static_cast<int>(msgType[i]), STRSEPER);
+        if (written < 0 || (size_t)written >= sizeOfBuffer - offset) break;
+        offset += written;
     }
   }
 
   //Deserializes a sensor definition
   void fromString(char *buffer, size_t size) {
-    numValues = 0;
-    memset(readingStringsArray, 0, sizeof(readingStringsArray));
-
     int ind1 = 0;
-    int wordCount = 0;
+    int count = 0;
+    int arrIndex = 0;
 
-    for (size_t i = 0; i < size; i++) {
-      bool isSeparator = (buffer[i] == STRSEPER[0]);
-      bool isEnd = (buffer[i] == '\0');
+    for (int i{0}; i < size; i++) {
+      if (buffer[i] == STRSEPER[0]) {
+        if (count == 0) {
+          
+        } else if (count%2 == 0) {
 
-      if (isSeparator || isEnd) {
-        int len = i - ind1;
+        } else {
 
-        if (wordCount == 0) {
-          snprintf(name, sizeof(name), "%.*s", len, buffer + ind1);
-        } else if (wordCount - 1 < 5) {
-          snprintf(readingStringsArray[wordCount - 1], sizeof(readingStringsArray[0]), "%.*s", len, buffer + ind1);
         }
-
-        ind1 = i + 1;
-        wordCount++;
-
-        if (isEnd)
-          break;
       }
     }
-    fnParam = nullptr;
-    if (wordCount > 0)
-      numValues = wordCount - 1;
   }
-
-  //Assignment for NULL to allow easier array iteration
-  void operator = (long L) {
-    if (ESP_ERROR_CHECK_WITHOUT_ABORT(L == NULL && "ONLY USED FOR ASSIGNING NULL VALUES") != ESP_OK) {
-      Serial.println("Invalid value passed");
-      return;
-    }
-
-    numValues = L;
-    sensor = Sensors_t::NUM_OF_SENSORS;
-  }
-
-
-  //Comparison operator for NULL to allow while loop iterations
-  bool operator == (long L) {
-    return numValues == L && sensor == Sensors_t::NUM_OF_SENSORS;    
-  }
-
-
 };
 
 
 
 void initSensorDefinition(SensorDefinition &sensorDef);
 
-
-//Union to convert data iteration
-union dataConverter {
-  uint8_t data[MAXPACKETSIZE]{};
-  int i;
-  float f;
-  double d;
-  char str[MAXPACKETSIZE];
-};
 
 //For message acknowledgement systems
 struct ackListItem {

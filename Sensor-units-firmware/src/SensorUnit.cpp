@@ -8,7 +8,13 @@ void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind);
 void initSensUnit(SensorUnit& sensUnit);
 void handlePostRequests(SensorUnit& sensUnit);
 
-using cmdFunc = void(*)(SensorUnit&,Packet& p,uint8_t); //Defines the commandFunc for void pointer syntax
+using defaultFnMethods = void(*)(SensorUnit&, Packet& p, uint8_t);
+
+// Single definition of the global pointer declared in SensorUnits.h
+SensorUnit* sensUnitPtr = nullptr;
+
+//This is a directive which defines the method parameters 
+//Defines a cmdFunc as a function which returns void and takes in the parameters of SensorUnit& Packet& and uint8_t
 
 /*
 @breif: initializes the internal SensorDefinition as well as the internal function pointer to handle commands requested
@@ -23,18 +29,34 @@ void SensorUnit::initSensorDefinition(SensorDefinition &sensorDef) {
   switch (sensorDef.sensor) {
   case (Sensors_t::TEMPERATURE_AND_HUMIDITY):
     snprintf(sensorDef.name, sizeof(sensorDef.name), "%s", "TEMPERATURE_AND_HUMIDITY");
+
     snprintf(sensorDef.readingStringsArray[0], sizeof(sensorDef.readingStringsArray[0]), "%s", "TEMPERATURE");
+    sensorDef.msgType[0] = Packet::READING;
     snprintf(sensorDef.readingStringsArray[1], sizeof(sensorDef.readingStringsArray[1]), "%s", "HUMIDITY");
+    sensorDef.msgType[1] = Packet::READING;
+
+    sensorDef.fnMemAdr = reinterpret_cast<void*>(tempCommands);
     sensorDef.numValues = 2;
+
     break;
   case (Sensors_t::MOTION):
     snprintf(sensorDef.name, sizeof(sensorDef.name), "%s", "MOTION_SENSOR");
+
     snprintf(sensorDef.readingStringsArray[0], sizeof(sensorDef.readingStringsArray[0]), "%s", "MOTION");
+    sensorDef.msgType[0] = Packet::READING;
+
+    sensorDef.fnMemAdr = reinterpret_cast<void*>(motionCommands);
     sensorDef.numValues = 1;
     break;
   case (Sensors_t::BASE):
     snprintf(sensorDef.name, sizeof(sensorDef.name), "%s", "BASE");
     snprintf(sensorDef.readingStringsArray[0], sizeof(sensorDef.readingStringsArray[0]), "%s", "INIT");
+    sensorDef.msgType[0] = Packet::READING;
+
+    snprintf(sensorDef.readingStringsArray[1], sizeof(sensorDef.readingStringsArray[1]), "%s", "ERROR"); //Sent to sensorUnitManagers when something erroneous has happened
+    sensorDef.msgType[1] = Packet::READING;
+    //Should always be sent with an error code
+    sensorDef.fnMemAdr = reinterpret_cast<void*>(baseCommands);
     sensorDef.numValues = 1;
     break;
   default:
@@ -59,15 +81,17 @@ SensorUnit::SensorUnit(uint8_t *cuMac, const char *PMKKEYIN, const char *LMKKEYI
   memcpy(cuPeerInf.lmk, LMKKEYIN, 16);
   uint8_t count{0};
   if (temp != nullptr) {
-    sensorsAvlbl[count++].sensor = Sensors_t::TEMPERATURE_AND_HUMIDITY;
-    initSensorDefinition(sensorsAvlbl[0]);
+    sensorsAvlbl[count].sensor = Sensors_t::TEMPERATURE_AND_HUMIDITY;
+    initSensorDefinition(sensorsAvlbl[count++]);
   }
 
   if (motion != nullptr) {
-    sensorsAvlbl[count++].sensor = Sensors_t::MOTION;
-    initSensorDefinition(sensorsAvlbl[1]);
+    sensorsAvlbl[count].sensor = Sensors_t::MOTION;
+    initSensorDefinition(sensorsAvlbl[count++]);
   }
-  sensorsAvlbl[count] = NULL;
+  sensorsAvlbl[count].sensor = Sensors_t::BASE;
+  initSensorDefinition(sensorsAvlbl[count++]);
+  sensCount = count;
   memcpy(PMKKEY, PMKKEYIN, 16);
 }
 
@@ -82,7 +106,9 @@ void sensUnitRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, in
   //Assumes sensUnitPtr is properly initialized
   Packet p{};
   memcpy(&p, data, sizeof(Packet));
-  sensUnitPtr->msgQueue.send(p);
+  if (sensUnitPtr != nullptr) {
+    sensUnitPtr->msgQueue.send(p);
+  }
 }
 
 
@@ -102,7 +128,7 @@ void sensUnitSendCB(const uint8_t *mac, esp_now_send_status_t status) {
 @breif: initializes ESP-NOW assuming proper constructor was called
 */
 void SensorUnit::initESPNOW() {
-  if (PMKKEY[0] = '\0') {
+  if (PMKKEY[0] == '\0') {
     Serial.println("ESPNOW failed to intialize");
     return;
   }
@@ -122,7 +148,7 @@ void SensorUnit::initESPNOW() {
   cuPeerInf.encrypt = true;
   cuPeerInf.ifidx = WIFI_IF_STA;
 
-  if (esp_now_add_peer(&cuPeerInf)) {
+  if (esp_now_add_peer(&cuPeerInf) != ESP_OK) {
     Serial.println("Failed to add SensUnitManager as a peer please try again");
   }
 
@@ -138,12 +164,33 @@ void SensorUnit::handlePacket(const Packet &p) {
   pac.dataType = Packet::NULL_T;
   sendPacket(pac);
 
-  if (p.type == Packet::PING) [[likely]] {
-    
+  if (p.type == Packet::PING && p.info.sensor == Sensors_t::BASE && p.info.ind == 0) { //Used for initialization of a SensorUnitManager
+    baseCommands(*this, pac, 0);
+  } else if (p.type == Packet::PING) [[likely]] {
+    sendAllPackets(*this);
   } else if (p.type == Packet::POST) {
 
-  } else [[unlikely]] {
+    int i{0};
+    for (i = 0; i < sensCount; i++) {
+      if (sensorsAvlbl[i].sensor == p.info.sensor) {
+        break;
+      }      
+    }
 
+    if (sensorsAvlbl[i].msgType[p.info.ind] != Packet::POST) {
+      writeErrorMsg(pac, d, "INVALID COMMAND SENT POST VALUE WAS FALSE");
+      sendPacket(pac);
+      return;
+    }
+
+    defaultFnMethods func;
+    func = reinterpret_cast<defaultFnMethods>(sensorsAvlbl[i].fnMemAdr);
+    func(*this, pac, p.info.ind);
+    sendPacket(pac);
+
+  } else [[unlikely]] {
+    writeErrorMsg(pac, d, "INVALID PACKET TYPE");
+    sendPacket(pac);
   }
 
   pac.type = Packet::FIN;
@@ -153,18 +200,71 @@ void SensorUnit::handlePacket(const Packet &p) {
 
 
 void sendAllPackets(SensorUnit& sensUnits) {
-
+  Packet pac{};
+  defaultFnMethods func;  
+  for (int i{0}; i < sensUnits.sensCount-1; i++) { //Ignore the base commands
+    func  = reinterpret_cast<defaultFnMethods>(sensUnits.sensorsAvlbl[i].fnMemAdr);
+    pac.info.sensor = sensUnits.sensorsAvlbl[i].sensor;
+    for (int j{0}; j < sensUnits.sensorsAvlbl[i].numValues; j++) {
+      if (sensUnits.sensorsAvlbl[i].msgType[j] == Packet::READING) {
+        pac.type = sensUnits.sensorsAvlbl[i].msgType[j];
+        pac.info.ind = j;
+        func(sensUnits, pac, j);
+        sensUnits.sendPacket(pac);
+      }
+    } 
+  }
 }
 
 
 void tempCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
+  dataConverter &d{sensUnit.d};
+  if (sensUnit.temp == nullptr) {
+    writeErrorMsg(p, d, "INVALID SENSOR POINTER");
+    return;
+  }
 
+  if (ind == 0) {
+    d.f = sensUnit.temp->readTemperature();
+    p.writeToPacket(d, sizeof(float));
+    p.dataType = Packet::FLOAT_T;
+    p.info.ind = ind;
+  } else if (ind == 1) {
+    d.f = sensUnit.temp->readHumidity();
+    p.writeToPacket(d, sizeof(float));
+    p.dataType = Packet::FLOAT_T;
+    p.info.ind = ind;
+  } else {
+    writeErrorMsg(p, d, "INVALID INDEX PASSED");
+  }
 }
 
 void motionCommands(SensorUnit & sensUnit, Packet& p, uint8_t ind) {
+  p.type = Packet::READING;
+  p.info.sensor = Sensors_t::MOTION;
+  dataConverter &d{sensUnit.d};
+  if (sensUnit.motion == nullptr) {
+    writeErrorMsg(p, d, "SENSOR POINTER WAS NEVER INITIALIZED");
+    return;
+  }
 
+  if (ind == 0) {
+    d.i = sensUnit.motion->read();
+    p.writeToPacket(d, sizeof(int));
+  } else {
+    writeErrorMsg(p, d, "INVALID INDEX PASSED");
+  }
 }
 
 void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
+  
+}
 
+
+void writeErrorMsg(Packet& p, dataConverter& d , std::string_view errormsg) {
+  p.info.sensor = Sensors_t::BASE;
+  p.info.ind = 1;
+  p.dataType = Packet::STRING_T;
+  snprintf(d.str, sizeof(d.str), "%s", errormsg); 
+  p.writeToPacket(d, errormsg.length());
 }

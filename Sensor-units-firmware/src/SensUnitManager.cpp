@@ -1,5 +1,11 @@
 #include "SensorUnitManager.h"
 #include "esp_now.h"
+
+// Single definition for the global manager pointer declared in the header
+SensorUnitManager *sensUnitMngr = nullptr;
+
+// Trivial destructor definition (was only declared in header)
+SensorUnitManager::~SensorUnitManager() = default;
 void SensorUnitManager::sendToSu(const Packet &packet, int suNum) {
   esp_err_t result = esp_now_send(suPeerInf[suNum].peer_addr, (uint8_t *)&packet, sizeof(packet));
   if (result != ESP_OK) {
@@ -22,8 +28,9 @@ void sensUnitManagerSendCB(const uint8_t *mac, esp_now_send_status_t status) {
 void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, int dataLen) {
   Packet packet{};
   memcpy(&packet, data, sizeof(Packet));
-
-  sensUnitMngr->msgQueue.send(packet);
+  if (sensUnitMngr != nullptr) {
+    sensUnitMngr->msgQueue.send(packet);
+  }
 }
 
 // Will only work if local PMKKEY and LMKKEY variables have been properly
