@@ -19,11 +19,14 @@ public:
   DHT *temp{nullptr};
   PIR *motion{nullptr};
   void initSensorDefinition(SensorDefinition& SensorDefinition);
+  dataConverter d;
 private:
   esp_now_peer_info_t cuPeerInf{};
   char PMKKEY[16]{};
   char CULMKKEY[16]{};
-  SensorDefinition sensorsAvlbl[static_cast<int>(Sensors_t::NUM_OF_SENSORS)]{NULL};
+  SensorDefinition sensorsAvlbl[static_cast<int>(Sensors_t::NUM_OF_SENSORS)]{};
+  uint8_t sensCount{};
 };
 
-extern SensorUnit *sensUnitPtr{nullptr};
+// Declaration only. Definition lives in a single translation unit.
+extern SensorUnit *sensUnitPtr;

@@ -5,9 +5,6 @@
 #include <esp_now.h>
 
 #define MAXPEERS 6
-#if __BYTE_ORDER__ == __LITTLE_ENDIAN__
-#define ____BYTE_ORDER__ __ORDER_BIG__ORDER_BIG_ENDIAN__
-#endif
 
 // SensorUnitManagers are responsible for sending and receiving messages between sensor units
 class SensorUnitManager final {
