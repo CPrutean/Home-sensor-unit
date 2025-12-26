@@ -76,6 +76,7 @@ struct SensorDefinition {
   char readingStringsArray[2][12]{{'\0'}, {'\0'}};
   char name[20]{'\0'};
   Packet::PacketType_T msgType[2]{Packet::NUMTYPES}; //Should only ever be reading or post, other methods will throw errors if this isnt true
+  Packet::DataType_T dataType[2]{Packet::NULL_T};
   Sensors_t sensor{Sensors_t::NUM_OF_SENSORS};
   uint8_t numValues{};
   void* fnMemAdr{nullptr};

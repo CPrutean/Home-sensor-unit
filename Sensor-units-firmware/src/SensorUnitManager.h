@@ -6,6 +6,22 @@
 
 #define MAXPEERS 6
 
+//Group readings by sensor unit
+//Group readings internally by the sensor definition indexes and the values
+class SensorUnitReadings final {
+public:
+  SensorUnitReadings::SensorUnitReadings();
+  //Information will be stored as raw bytes until we have need it
+  void postReading(uint8_t *data, uint8_t sizeOfReading, PacketInfo_t readingInfo);
+  int getNumOfReadings();
+  void setNumOfReadings(int numOfReadings);
+private:
+  uint8_t numOfReadings{0};
+  uint8_t **readings{nullptr};
+  uint8_t *sizeOfReadings{nullptr};
+  PacketInfo_t *readingInfo{nullptr}; //Info of the sensor and the reading index 
+};
+
 // SensorUnitManagers are responsible for sending and receiving messages between sensor units
 class SensorUnitManager final {
 public:
@@ -21,7 +37,9 @@ public:
       memcpy(suPeerInf[i].lmk, LMKKEYSIN[i], 16);
     }
     strncpy(PMKKEY, PMKKEYIN, 16);
+    readingsArr = new SensorUnitReadings[numOfSuIn]; //Will be initialized as objects populate once we recieve all of the sensor units
   }
+  SensorUnitReadings *readingsArr{nullptr};
   SensorUnitManager() = delete;
   void sendToSu(const Packet &p, int suNum);
   void handlePacket(const ackListItem &packetGroup);

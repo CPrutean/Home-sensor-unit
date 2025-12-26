@@ -67,23 +67,10 @@ void SensorUnitManager::initESPNOW() {
 // Minimal handler for a grouped set of packets received from a Sensor Unit
 // This can be expanded to aggregate readings and update internal state.
 void SensorUnitManager::handlePacket(const ackListItem &packetGroup) {
-  // Example processing: iterate through packets and log or handle types
-  for (size_t i = 0; i < packetGroup.packetCount; ++i) {
-    const Packet &p = packetGroup.packetList[i];
-    switch (p.type) {
-      case Packet::READING:
-        // In a fuller implementation, convert and store readings per SU
-        Serial.println("READING packet processed");
-        break;
-      case Packet::ACK:
-        Serial.println("ACK received from SU");
-        break;
-      case Packet::POST:
-        Serial.println("POST response processed");
-        break;
-      default:
-        Serial.println("Unhandled packet type in group");
-        break;
-    }
+  int i;
+  //Should only handle ack and reading values, POST packet types will return readings containing the time in MILLIS it was recieved
+  for (i = 0; i < packetGroup.packetCount; i++) {
+    
   }
 }
+
