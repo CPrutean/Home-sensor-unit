@@ -21,6 +21,7 @@ private:
   uint8_t **readings{nullptr};
   uint8_t *sizeOfReadings{nullptr};  //Treated as the length of the sub arrays of the readings 
   PacketInfo_t *readingInfo{nullptr}; //Info of the sensor and the reading index 
+  xSemaphoreHandle mutex;
 };
 
 // SensorUnitManagers are responsible for sending and receiving messages between sensor units
