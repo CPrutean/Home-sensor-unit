@@ -14,11 +14,12 @@ public:
   //Information will be stored as raw bytes until we have need it
   void postReading(uint8_t *data, uint8_t sizeOfReading, PacketInfo_t readingInfo);
   int getNumOfReadings();
-  void setNumOfReadings(int numOfReadings);
+  void setNumOfReadings(int numOfReadings); //Will also resize the internal arrays to accomodate for size if need be
 private:
-  uint8_t numOfReadings{0};
+  //All should be treated as arrays
+  uint8_t numOfReadings{0}; //Treated as the length
   uint8_t **readings{nullptr};
-  uint8_t *sizeOfReadings{nullptr};
+  uint8_t *sizeOfReadings{nullptr};  //Treated as the length of the sub arrays of the readings 
   PacketInfo_t *readingInfo{nullptr}; //Info of the sensor and the reading index 
 };
 
