@@ -10,7 +10,7 @@
 //Group readings internally by the sensor definition indexes and the values
 class SensorUnitReadings final {
 public:
-  SensorUnitReadings::SensorUnitReadings();
+  explicit SensorUnitReadings();
   //Information will be stored as raw bytes until we have need it
   void postReading(uint8_t *data, uint8_t sizeOfReading, PacketInfo_t readingInfo);
   int getNumOfReadings();

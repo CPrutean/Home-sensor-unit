@@ -30,7 +30,7 @@ struct PacketInfo_t {
   Sensors_t sensor{Sensors_t::NUM_OF_SENSORS};
   uint8_t ind{255};
 
-  bool operator==(const PacketInfo_t &p) {
+  bool operator==(PacketInfo_t &p) {
     return sensor == p.sensor && ind == p.ind;
   }
 };
