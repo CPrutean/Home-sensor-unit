@@ -14,7 +14,7 @@ SensorUnitReadings::SensorUnitReadings() {
 int SensorUnitReadings::getNumOfReadings() {
     if (!xSemaphoreTakeRecursive(mutex, portMAX_DELAY) == pdTRUE) {
         Serial.println("FAILED TO TAKE MUTEX IN SENSOR READINGS RETURNING"); 
-        return NULL;
+        return -1;
     }
     int num = numOfReadings;
     xSemaphoreGiveRecursive(mutex);
