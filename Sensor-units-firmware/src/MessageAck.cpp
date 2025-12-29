@@ -35,49 +35,11 @@ void MessageAck::resize() {
   xSemaphoreGiveRecursive(mutex);
 }
 
-
-/*
-@breif: inserts a recieved packet and groups them with similar messages with the same request ID
-@param: const Packet& p: Packet recieved to be grouped with internal msgID 
-@return: will return an ackListItem when the final packet is recieved with the Packet::FIN type
-*/
-etl::optional<ackListItem> MessageAck::insertPacket(const Packet &p) {
-  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
-    Serial.println("Failed to take mutex in MessageAck");
-    return etl::nullopt;
-  }
-
-
-  bool found = false;
-  int i;
-  for (i = 0; i < size; i++) {
-    if (p.msgID == ackArr[i].msgID) {
-      found = true;
-      break;
-    }
-  }
-  if (!found) {
-    Serial.println("INVALID MSGID");
-    xSemaphoreGiveRecursive(mutex);
-    return etl::nullopt;
-  }
-
-  if (p.type != Packet::FIN) {
-    ackArr[i].packetList[ackArr[i].packetCount++] = p;
-    xSemaphoreGiveRecursive(mutex);
-    return etl::nullopt;
-  } else {
-    ackListItem ret = ackArr[i];
-    xSemaphoreGiveRecursive(mutex);
-    return ret;
-  }
-}
-
 /*
 @breif: removes an ackArrItem based on the group ID passed
 @param unsigned long long msgID: message group ID to be removed
 */
-void MessageAck::removeAckArrItem(unsigned long long msgID) {
+bool MessageAck::removeAckArrItem(unsigned long long msgID) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
     return;
@@ -109,7 +71,7 @@ void MessageAck::removeAckArrItem(unsigned long long msgID) {
 @breif: creates a new ackListItem object with a new msg groupID
 @param unsigned long long msgID: message group ID to associate with different packets
 */
-void MessageAck::addNewAckArrItem(unsigned long long msgID) {
+void MessageAck::addNewAckArrItem(unsigned long long msgID, unsigned long long postTime) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
     return;
@@ -126,7 +88,7 @@ void MessageAck::addNewAckArrItem(unsigned long long msgID) {
 }
 
 // Remove timed out requests and return list of SU indexes that timed out
-void MessageAck::removeTimedOutReq(int* suNumList) {
+void MessageAck::removeTimedOutReq(int* suNumList, int buffLen) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
     return;

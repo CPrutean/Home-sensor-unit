@@ -162,6 +162,5 @@ void initSensorDefinition(SensorDefinition &sensorDef);
 struct ackListItem {
   unsigned long long msgID{0};
   unsigned long long postTime{};
-  Packet packetList[8]{};
   size_t packetCount{0};
 };
