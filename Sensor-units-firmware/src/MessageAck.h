@@ -5,10 +5,9 @@
 class MessageAck final {
 public:
   MessageAck();
-  etl::optional<ackListItem> insertPacket(const Packet &p);
-  void addNewAckArrItem(unsigned long long msgID);
-  void removeAckArrItem(unsigned long long msgID);
-  void removeTimedOutReq(int* suNumList);
+  void addNewAckArrItem(unsigned long long msgID, unsigned long long postTime); //For the length of the array objects
+  bool removeAckArrItem(unsigned long long msgID); //Removes a ackArrItem that was issued
+  void removeTimedOutReq(int* suNumList, int buffLen); //Provide a buffer that pastes the sensor units that are timed out
   ~MessageAck();
 private:
   ackListItem *ackArr{nullptr};

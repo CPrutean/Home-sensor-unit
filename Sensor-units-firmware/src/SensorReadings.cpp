@@ -80,9 +80,9 @@ void SensorUnitReadings::setNumOfReadings(int num) {
         readingInfo = new PacketInfo_t[num];
         sizeOfReadings = new uint8_t[num];
     } else {
-        uint8_t **newReadings = new uint8_t*[num];
         uint8_t *newSize = new uint8_t[num];
         PacketInfo_t *newPackInfo = new PacketInfo_t[num];
+        uint8_t **newReadings = new uint8_t*[num];
         memcpy(newSize, sizeOfReadings, sizeof(sizeOfReadings));
         memcpy(newPackInfo, readingInfo, sizeof(readingInfo));
         int i;
