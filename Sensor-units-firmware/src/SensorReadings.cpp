@@ -12,8 +12,8 @@ SensorUnitReadings::SensorUnitReadings() {
 }
 
 int SensorUnitReadings::getNumOfReadings() {
-    if (!xSemaphoreTakeRecursive(mutex, portMAX_DELAY) == pdTRUE) {
-        Serial.println("FAILED TO TAKE MUTEX IN SENSOR READINGS RETURNING"); 
+    if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
+        Serial.println("FAILED TO TAKE MUTEX IN SENSOR READINGS RETURNING");
         return -1;
     }
     int num = numOfReadings;
@@ -22,7 +22,7 @@ int SensorUnitReadings::getNumOfReadings() {
 }
 
 void SensorUnitReadings::postReading(uint8_t *data, uint8_t sizeOfReading, PacketInfo_t packInfo) {
-    if (!xSemaphoreTakeRecursive(mutex, portMAX_DELAY) == pdTRUE) {
+    if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
         Serial.println("Failed to take mutex in SensorReadings");
         return;
     }
@@ -38,12 +38,14 @@ void SensorUnitReadings::postReading(uint8_t *data, uint8_t sizeOfReading, Packe
 
     if (!found) {
         Serial.println("Invalid packet info passed");
+        xSemaphoreGiveRecursive(mutex);
         return;
     }
 
     if (sizeOfReading != sizeOfReadings[i]) {
-        delete[] readings[i]; 
+        delete[] readings[i];
         readings[i] = new uint8_t[sizeOfReading];
+        sizeOfReadings[i] = sizeOfReading;
     }
 
     memcpy(readings[i], data, sizeOfReading);
@@ -92,16 +94,22 @@ void SensorUnitReadings::setNumOfReadings(int num) {
         }
 
         for (int j{i}; j < num; j++) {
-            newReadings[i] = new uint8_t[4];
+            newReadings[j] = new uint8_t[4];
         }
-        
+
         delete[] sizeOfReadings;
         delete[] readingInfo;
         for (int i{0}; i < numOfReadings; i++) {
             delete[] readings[i];
         }
         delete[] readings;
+
+        readings = newReadings;
+        sizeOfReadings = newSize;
+        readingInfo = newPackInfo;
+        numOfReadings = num;
     }
+    xSemaphoreGiveRecursive(mutex);
 }
 
 

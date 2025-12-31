@@ -42,7 +42,7 @@ void MessageAck::resize() {
 bool MessageAck::removeAckArrItem(unsigned long long msgID) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
-    return;
+    return false;
   }
 
 
@@ -58,7 +58,7 @@ bool MessageAck::removeAckArrItem(unsigned long long msgID) {
   if (!found) {
     Serial.println("Invalid msgID");
     xSemaphoreGiveRecursive(mutex);
-    return;
+    return false;
   }
 
   for (int j{i}; j < static_cast<int>(size)-1; j++) {
@@ -66,6 +66,7 @@ bool MessageAck::removeAckArrItem(unsigned long long msgID) {
   }
   size--;
   xSemaphoreGiveRecursive(mutex);
+  return true;
 }
 /*
 @breif: creates a new ackListItem object with a new msg groupID

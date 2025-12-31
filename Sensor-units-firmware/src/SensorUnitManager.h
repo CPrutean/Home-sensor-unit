@@ -1,10 +1,11 @@
-#pragma once
+
 #include "MessageAck.h"
 #include "MessageQueue.h"
 #include "global_include.h"
+#include "WebServer.h"
 #include <esp_now.h>
 
-#define MAXPEERS 6
+#define MAXPEERS 6 
 
 //Group readings by sensor unit
 //Group readings internally by the sensor definition indexes and the values
@@ -48,11 +49,10 @@ public:
   MessageQueue msgQueue{};
   MessageAck msgAck{};
   void initESPNOW();
+  SensorUnitStatus suStatus[MAXPEERS]{SensorUnitManager::NUMTYPES};
+  Sensors_t sensorsAvlbl[MAXPEERS][3]{};
 protected:
   esp_now_peer_info_t suPeerInf[MAXPEERS]{};
-  SensorUnitStatus suStatus[MAXPEERS]{SensorUnitManager::NUMTYPES};
-  size_t numOfSu{};
-  Sensors_t sensorsAvlbl[MAXPEERS][3]{};
   unsigned long long msgID{};
   char PMKKEY[16]{'\0'};
   char LMKKEYS[MAXPEERS][16]{'\0'};
