@@ -1,4 +1,5 @@
-#include "global_include.h"
+#include "WebServerSUM.h"
+#include <WiFi.h>
 #include <WebServer.h>
 #include <Preferences.h>
 
@@ -9,11 +10,7 @@ WebServer server(80);
 Preferences preferences;
 
 // Storage for WiFi credentials
-struct WiFiCredentials {
-  char ssid[32] = {0};
-  char password[64] = {0};
-  bool isConfigured = false;
-} wifiCreds;
+WiFiCredentials wifiCreds;
 
 // HTML template for the configuration page
 const char* APSERVERHTML = R"rawliteral(
