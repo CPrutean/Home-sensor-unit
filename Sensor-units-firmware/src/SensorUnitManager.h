@@ -2,7 +2,8 @@
 #include "MessageAck.h"
 #include "MessageQueue.h"
 #include "global_include.h"
-#include "WebServer.h"
+#include <WebServer.h>
+#include "WebServerSUM.h"
 #include <esp_now.h>
 
 #define MAXPEERS 6 
@@ -31,7 +32,7 @@ public:
   enum SensorUnitStatus:uint8_t{ONLINE, ERROR, OFFLINE, NUMTYPES};
   SensorUnitManager(const SensorUnitManager &) = delete;
   virtual ~SensorUnitManager();
-  explicit SensorUnitManager(uint8_t **macAdrIn, size_t numOfSuIn, const char *PMKKEYIN, const char **LMKKEYSIN)
+  explicit SensorUnitManager(uint8_t **macAdrIn, size_t numOfSuIn, WebServer &serv, const char *PMKKEYIN, const char **LMKKEYSIN)
   : numOfSu{numOfSuIn} {
     memset(suPeerInf, 0, sizeof(suPeerInf));
     for (int i = 0; i < numOfSuIn; i++) {
@@ -41,11 +42,14 @@ public:
     }
     strncpy(PMKKEY, PMKKEYIN, 16);
     readingsArr = new SensorUnitReadings[numOfSuIn]; //Will be initialized as objects populate once we recieve all of the sensor units
+    servPtr = &serv;
   }
+
+
   SensorUnitReadings *readingsArr{nullptr};
   SensorUnitManager() = delete;
   void sendToSu(const Packet &p, int suNum);
-  void handlePacket(const ackListItem &packetGroup);
+  void handlePacket(const Packet &packet);
   MessageQueue msgQueue{};
   MessageAck msgAck{};
   void initESPNOW();
@@ -53,9 +57,11 @@ public:
   Sensors_t sensorsAvlbl[MAXPEERS][3]{};
 protected:
   esp_now_peer_info_t suPeerInf[MAXPEERS]{};
+  uint8_t numOfSu{};
   unsigned long long msgID{};
   char PMKKEY[16]{'\0'};
   char LMKKEYS[MAXPEERS][16]{'\0'};
+  WebServer* servPtr{nullptr};
 };
 extern SensorUnitManager *sensUnitMngr;
 

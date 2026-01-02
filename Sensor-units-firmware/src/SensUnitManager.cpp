@@ -6,6 +6,7 @@ SensorUnitManager *sensUnitMngr = nullptr;
 
 // Trivial destructor definition (was only declared in header)
 SensorUnitManager::~SensorUnitManager() = default;
+
 void SensorUnitManager::sendToSu(const Packet &packet, int suNum) {
   esp_err_t result = esp_now_send(suPeerInf[suNum].peer_addr, (uint8_t *)&packet, sizeof(packet));
   if (result != ESP_OK) {
@@ -66,11 +67,9 @@ void SensorUnitManager::initESPNOW() {
 
 // Minimal handler for a grouped set of packets received from a Sensor Unit
 // This can be expanded to aggregate readings and update internal state.
-void SensorUnitManager::handlePacket(const ackListItem &packetGroup) {
-  int i;
-  //Should only handle ack and reading values, POST packet types will return readings containing the time in MILLIS it was recieved
-  for (i = 0; i < packetGroup.packetCount; i++) {
-    
+void SensorUnitManager::handlePacket(const Packet& packet) {
+  if (packet.type == Packet::ACK) {
+    msgAck.removeAckArrItem(packet.msgID); 
   }
 }
 
