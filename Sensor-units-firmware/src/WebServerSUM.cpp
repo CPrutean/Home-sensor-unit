@@ -4,13 +4,14 @@
 #include <Preferences.h>
 
 // Web server on port 80
-WebServer server(80);
 
 // Preferences for storing WiFi credentials
 Preferences preferences;
 
 // Storage for WiFi credentials
 WiFiCredentials wifiCreds;
+
+static WebServer *globServer{nullptr};
 
 // HTML template for the configuration page
 const char* APSERVERHTML = R"rawliteral(
@@ -344,19 +345,25 @@ void handleScan() {
 
   json += "]}";
   WiFi.scanDelete();
-
-  server.send(200, "application/json", json);
+  if (globServer == nullptr) {
+    return;
+  }
+  globServer->send(200, "application/json", json);
 }
 
 // Function to handle WiFi connection request
 void handleConnect() {
-  if (!server.hasArg("ssid") || !server.hasArg("password")) {
-    server.send(400, "application/json", "{\"success\":false,\"message\":\"Missing parameters\"}");
+  if (globServer == nullptr) {
     return;
   }
 
-  String ssid = server.arg("ssid");
-  String password = server.arg("password");
+  if (!globServer->hasArg("ssid") || !globServer->hasArg("password")) {
+    globServer->send(400, "application/json", "{\"success\":false,\"message\":\"Missing parameters\"}");
+    return;
+  }
+
+  String ssid = globServer->arg("ssid");
+  String password = globServer->arg("password");
 
   // Store credentials
   strncpy(wifiCreds.ssid, ssid.c_str(), sizeof(wifiCreds.ssid) - 1);
@@ -370,7 +377,7 @@ void handleConnect() {
   preferences.putBool("configured", true);
   preferences.end();
 
-  server.send(200, "application/json", "{\"success\":true,\"message\":\"Credentials saved\"}");
+  globServer->send(200, "application/json", "{\"success\":true,\"message\":\"Credentials saved\"}");
 
   // Attempt to connect
   delay(1000);
@@ -380,13 +387,17 @@ void handleConnect() {
 
 // Function to serve the main configuration page
 void handleRoot() {
-  server.send(200, "text/html", APSERVERHTML);
+  if (globServer == nullptr) {
+    return;
+  }
+  globServer->send(200, "text/html", APSERVERHTML);
 }
 
 // Function to initialize the AP web server
-void initAPWebServer(const char* apSSID = "SensorUnit_Config", const char* apPassword = "12345678") {
+void initAPWebServer(const char* apSSID = "SensorUnit_Config", const char* apPassword = "12345678", WebServer &server) {
   // Load saved credentials
   preferences.begin("wifi", true);
+  globServer = &server;
   String savedSSID = preferences.getString("ssid", "");
   String savedPassword = preferences.getString("password", "");
   bool configured = preferences.getBool("configured", false);
@@ -405,7 +416,6 @@ void initAPWebServer(const char* apSSID = "SensorUnit_Config", const char* apPas
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(IP);
-
   // Setup server routes
   server.on("/", handleRoot);
   server.on("/scan", handleScan);
@@ -417,7 +427,7 @@ void initAPWebServer(const char* apSSID = "SensorUnit_Config", const char* apPas
 }
 
 // Function to handle client requests (call this in loop)
-void handleAPWebServer() {
+void handleAPWebServer(WebServer &server) {
   server.handleClient();
 }
 
