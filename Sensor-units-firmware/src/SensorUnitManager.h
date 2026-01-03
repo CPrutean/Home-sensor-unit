@@ -14,7 +14,7 @@ class SensorUnitReadings final {
 public:
   explicit SensorUnitReadings();
   //Information will be stored as raw bytes until we have need it
-  void postReading(uint8_t *data, uint8_t sizeOfReading, PacketInfo_t readingInfo);
+  void postReading(const uint8_t *data, uint8_t sizeOfReading, PacketInfo_t readingInfo);
   int getNumOfReadings();
   void setNumOfReadings(int numOfReadings); //Will also resize the internal arrays to accomodate for size if need be
 private:
@@ -32,16 +32,16 @@ public:
   enum SensorUnitStatus:uint8_t{ONLINE, ERROR, OFFLINE, NUMTYPES};
   SensorUnitManager(const SensorUnitManager &) = delete;
   virtual ~SensorUnitManager();
-  explicit SensorUnitManager(uint8_t **macAdrIn, size_t numOfSuIn, WebServer &serv, const char *PMKKEYIN, const char **LMKKEYSIN)
-  : numOfSu{numOfSuIn} {
+  explicit SensorUnitManager(uint8_t **macAdrIn, size_t suCountIn, WebServer &serv, const char *PMKKEYIN, const char **LMKKEYSIN)
+  : suCount{suCountIn} {
     memset(suPeerInf, 0, sizeof(suPeerInf));
-    for (int i = 0; i < numOfSuIn; i++) {
+    for (int i = 0; i < suCountIn; i++) {
       memcpy(suPeerInf[i].peer_addr, macAdrIn[i], 6);
       suPeerInf[i].encrypt = true;
       memcpy(suPeerInf[i].lmk, LMKKEYSIN[i], 16);
     }
     strncpy(PMKKEY, PMKKEYIN, 16);
-    readingsArr = new SensorUnitReadings[numOfSuIn]; //Will be initialized as objects populate once we recieve all of the sensor units
+    readingsArr = new SensorUnitReadings[suCountIn]; //Will be initialized as objects populate once we recieve all of the sensor units
     servPtr = &serv;
   }
 
@@ -54,13 +54,15 @@ public:
   MessageAck msgAck{};
   void initESPNOW();
   SensorUnitStatus suStatus[MAXPEERS]{SensorUnitManager::NUMTYPES};
-  Sensors_t sensorsAvlbl[MAXPEERS][3]{};
+  uint8_t sensorCount[MAXPEERS]{};
+  SensorDefinition sensors[MAXPEERS][3]{};
 protected:
   esp_now_peer_info_t suPeerInf[MAXPEERS]{};
-  uint8_t numOfSu{};
+  uint8_t suCount{};
   unsigned long long msgID{};
   char PMKKEY[16]{'\0'};
   char LMKKEYS[MAXPEERS][16]{'\0'};
+  int macInd(const uint8_t *mac);
   WebServer* servPtr{nullptr};
 };
 extern SensorUnitManager *sensUnitMngr;
