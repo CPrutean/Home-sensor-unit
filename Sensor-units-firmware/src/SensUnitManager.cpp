@@ -29,6 +29,7 @@ void sensUnitManagerSendCB(const uint8_t *mac, esp_now_send_status_t status) {
 void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, int dataLen) {
   Packet packet{};
   memcpy(&packet, data, sizeof(Packet));
+  memcpy(packet.senderAddr, recvInfo->src_addr, 6);
   if (sensUnitMngr != nullptr) {
     sensUnitMngr->msgQueue.send(packet);
   }
@@ -64,12 +65,42 @@ void SensorUnitManager::initESPNOW() {
   }
   Serial.println("Finished ESPNOWINIT");
 }
+int SensorUnitManager::macInd(const uint8_t *mac) {
+  bool found = true;
+  int i;
+  for (i = 0; i < suCount; i++) {
+    found = true;
+    found = mac[0] == suPeerInf[i].peer_addr[0] && mac[1] == suPeerInf[i].peer_addr[1] && mac[2] == suPeerInf[i].peer_addr[2] && mac[3] == suPeerInf[i].peer_addr[3] && mac[4] == suPeerInf[i].peer_addr[4] && mac[5] == suPeerInf[i].peer_addr[5];
 
-// Minimal handler for a grouped set of packets received from a Sensor Unit
-// This can be expanded to aggregate readings and update internal state.
+    if (found) {
+      break;
+    }
+  }
+
+  if (found) {
+    return i;
+  } else {
+    return -1;
+  }
+}
+
 void SensorUnitManager::handlePacket(const Packet& packet) {
+  int ind = macInd(packet.senderAddr);
+  if (ind == -1) {
+    Serial.println("Failed to handle packet");
+    return;
+  }
+
+
   if (packet.type == Packet::ACK) {
     msgAck.removeAckArrItem(packet.msgID); 
-  }
+    return;
+  } else if (packet.info.ind == 0 && packet.info.sensor == Sensors_t::BASE && packet.dataType == Packet::STRING_T) { //Used for initializing the sensor ind
+    dataConverter d;
+    memcpy(d.data, packet.packetData, packet.size);
+    sensors[ind][sensorCount[ind]++].fromString(d.str, packet.size);
+  } else {
+    readingsArr[ind].postReading(packet.packetData, packet.size, packet.info);
+  } 
 }
 

@@ -49,6 +49,7 @@ union dataConverter {
 struct Packet {
   uint8_t packetData[MAXPACKETSIZE]{};
   unsigned long long msgID{};
+  uint8_t senderAddr[6]{};
   PacketInfo_t info{};
   uint8_t size{};
   enum PacketType_T : uint8_t { PING = 0, ACK, READING, POST, FIN, NUMTYPES };
