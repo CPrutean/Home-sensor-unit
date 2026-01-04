@@ -1,9 +1,10 @@
 #pragma once
-#include "MessageQueue.h"
-#include "global_include.h"
+#include <Components/MessageQueue.h>
+#include <Core/global_include.h>
 #include <DHT.h>
 #include <PIR.h>
 #include <esp_now.h>
+#include <Wire.h>
 // As more sensors get added certain things will be added onto but the
 // SensorUnitManager should behave the exact same
 class SensorUnit final {
