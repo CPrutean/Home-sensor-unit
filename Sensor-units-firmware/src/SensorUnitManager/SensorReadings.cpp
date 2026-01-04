@@ -21,7 +21,7 @@ int SensorUnitReadings::getNumOfReadings() {
     return num;
 }
 
-void SensorUnitReadings::postReading(uint8_t *data, uint8_t sizeOfReading, PacketInfo_t packInfo) {
+void SensorUnitReadings::postReading(const uint8_t *data, uint8_t sizeOfReading, PacketInfo_t packInfo) {
     if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
         Serial.println("Failed to take mutex in SensorReadings");
         return;

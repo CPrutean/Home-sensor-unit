@@ -1,5 +1,5 @@
 #pragma once
-#include "global_include.h"
+#include <Core/global_include.h>
 #define MAXQUEUELEN 32
 class MessageQueue {
 public:

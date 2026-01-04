@@ -1,5 +1,5 @@
 #include "SensorUnitManager.h"
-#include "esp_now.h"
+#include <esp_now.h>
 
 // Single definition for the global manager pointer declared in the header
 SensorUnitManager *sensUnitMngr = nullptr;
@@ -104,3 +104,6 @@ void SensorUnitManager::handlePacket(const Packet& packet) {
   } 
 }
 
+uint8_t SensorUnitManager::getSuCount() {
+  return suCount;
+}

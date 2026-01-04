@@ -1,9 +1,9 @@
-
-#include "MessageAck.h"
-#include "MessageQueue.h"
-#include "global_include.h"
+#pragma once
+#include <Components/MessageAck.h>
+#include <Components/MessageQueue.h>
+#include <Core/global_include.h>
 #include <WebServer.h>
-#include "WebServerSUM.h"
+#include <WebComponents/WebServerSUM.h>
 #include <esp_now.h>
 
 #define MAXPEERS 6 
@@ -50,9 +50,10 @@ public:
   SensorUnitManager() = delete;
   void sendToSu(const Packet &p, int suNum);
   void handlePacket(const Packet &packet);
+  void initESPNOW();
+  uint8_t getSuCount();
   MessageQueue msgQueue{};
   MessageAck msgAck{};
-  void initESPNOW();
   SensorUnitStatus suStatus[MAXPEERS]{SensorUnitManager::NUMTYPES};
   uint8_t sensorCount[MAXPEERS]{};
   SensorDefinition sensors[MAXPEERS][3]{};
