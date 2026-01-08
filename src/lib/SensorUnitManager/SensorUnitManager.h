@@ -33,7 +33,7 @@ public:
   enum SensorUnitStatus:uint8_t{ONLINE, ERROR, OFFLINE, NUMTYPES};
   SensorUnitManager(const SensorUnitManager &) = delete;
   virtual ~SensorUnitManager();
-  explicit SensorUnitManager(uint8_t **macAdrIn, size_t suCountIn, WebServer &serv, const char *PMKKEYIN, const char **LMKKEYSIN)
+  explicit SensorUnitManager(const uint8_t macAdrIn[MAXPEERS][6], size_t suCountIn, WebServer &serv, const char *PMKKEYIN, const char **LMKKEYSIN)
   : suCount{suCountIn} {
     memset(suPeerInf, 0, sizeof(suPeerInf));
     for (int i = 0; i < suCountIn; i++) {
@@ -52,6 +52,7 @@ public:
   void sendToSu(const Packet &p, int suNum);
   void handlePacket(const Packet &packet);
   void initESPNOW();
+  void initSensorUnitSensors(int suIndex);
   uint8_t getSuCount();
   MessageQueue msgQueue{};
   MessageAck msgAck{};
