@@ -7,6 +7,7 @@
 #include <esp_now.h>
 
 #define MAXPEERS 6 
+#define MAXSENSORS 3
 
 //Group readings by sensor unit
 //Group readings internally by the sensor definition indexes and the values
@@ -30,24 +31,34 @@ private:
 // SensorUnitManagers are responsible for sending and receiving messages between sensor units
 class SensorUnitManager final {
 public:
-  enum SensorUnitStatus:uint8_t{ONLINE, ERROR, OFFLINE, NUMTYPES};
+  enum SensorUnitStatus:uint8_t{ONLINE = 0, ERROR, OFFLINE, NUMTYPES};
+
+  struct SensorUnitInfo {
+    SensorDefinition sensors[MAXSENSORS]{};
+    SensorUnitReadings readings{}; 
+    char LMKKEY[16]{};
+    esp_now_peer_info_t peerInf{};
+    uint8_t sensorCount{0};
+    SensorUnitStatus status{};
+  };
+
+  auto getSensorUnitInfo(int ind) -> SensorUnitInfo&;
   SensorUnitManager(const SensorUnitManager &) = delete;
   virtual ~SensorUnitManager();
   explicit SensorUnitManager(const uint8_t macAdrIn[MAXPEERS][6], size_t suCountIn, WebServer &serv, const char *PMKKEYIN, const char **LMKKEYSIN)
   : suCount{suCountIn} {
-    memset(suPeerInf, 0, sizeof(suPeerInf));
+    memset(suInfo, 0, sizeof(suInfo));
+
     for (int i = 0; i < suCountIn; i++) {
-      memcpy(suPeerInf[i].peer_addr, macAdrIn[i], 6);
-      suPeerInf[i].encrypt = true;
-      memcpy(suPeerInf[i].lmk, LMKKEYSIN[i], 16);
+      memcpy(suInfo[i].peerInf.peer_addr, macAdrIn[i], 6);
+      suInfo[i].peerInf.encrypt = true;
+      memcpy(suInfo[i].peerInf.lmk, LMKKEYSIN[i], 16);
     }
     strncpy(PMKKEY, PMKKEYIN, 16);
-    readingsArr = new SensorUnitReadings[suCountIn]; //Will be initialized as objects populate once we recieve all of the sensor units
     servPtr = &serv;
   }
 
 
-  SensorUnitReadings *readingsArr{nullptr};
   SensorUnitManager() = delete;
   void sendToSu(const Packet &p, int suNum);
   void handlePacket(const Packet &packet);
@@ -56,15 +67,11 @@ public:
   uint8_t getSuCount();
   MessageQueue msgQueue{};
   MessageAck msgAck{};
-  SensorUnitStatus suStatus[MAXPEERS]{SensorUnitManager::NUMTYPES};
-  uint8_t sensorCount[MAXPEERS]{};
-  SensorDefinition sensors[MAXPEERS][3]{};
 protected:
-  esp_now_peer_info_t suPeerInf[MAXPEERS]{};
+  SensorUnitInfo suInfo[MAXPEERS]{};
   uint8_t suCount{};
   unsigned long long msgID{};
   char PMKKEY[16]{'\0'};
-  char LMKKEYS[MAXPEERS][16]{'\0'};
   int macInd(const uint8_t *mac);
   WebServer* servPtr{nullptr};
 };

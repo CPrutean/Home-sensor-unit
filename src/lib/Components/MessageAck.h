@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/global_include.h>
+#include <SensorUnitManager/SensorUnitManager.h>
 
 #define BEGINACKLEN 8
 class MessageAck final {
@@ -7,7 +8,7 @@ public:
   MessageAck();
   void addNewAckArrItem(unsigned long long msgID, unsigned long long postTime); //For the length of the array objects
   bool removeAckArrItem(unsigned long long msgID); //Removes a ackArrItem that was issued
-  void removeTimedOutReq(bool* suNumList); //Provide a buffer that pastes the sensor units that are timed out
+  void removeTimedOutReq(SensorUnitManager::SensorUnitStatus* suStatus); //Provide a buffer that pastes the sensor units that are timed out
   ~MessageAck();
 private:
   ackListItem *ackArr{nullptr};

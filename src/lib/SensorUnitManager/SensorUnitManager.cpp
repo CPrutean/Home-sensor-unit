@@ -2,13 +2,13 @@
 #include <esp_now.h>
 
 // Single definition for the global manager pointer declared in the header
-SensorUnitManager *sensUnitMngr = nullptr;
+static SensorUnitManager *sensUnitMngr = nullptr;
 
 // Trivial destructor definition (was only declared in header)
 SensorUnitManager::~SensorUnitManager() = default;
 
 void SensorUnitManager::sendToSu(const Packet &packet, int suNum) {
-  esp_err_t result = esp_now_send(suPeerInf[suNum].peer_addr, (uint8_t *)&packet, sizeof(packet));
+  esp_err_t result = esp_now_send(suInfo[suNum].peerInf.peer_addr, (uint8_t *)&packet, sizeof(packet));
   if (result != ESP_OK) {
     Serial.println("Packet failed to send");
   } else {
@@ -51,15 +51,18 @@ void SensorUnitManager::initESPNOW() {
     return;
   }
 
+
+  sensUnitMngr = this; //Used for initializing global callbacks
+
   esp_now_set_pmk((uint8_t *)PMKKEY);
   esp_now_register_recv_cb(esp_now_recv_cb_t(sensUnitManagerRecvCB));
   esp_now_register_send_cb(esp_now_send_cb_t(sensUnitManagerSendCB));
 
-  for (auto &peerInf : suPeerInf) {
-    peerInf.channel = 0;
-    peerInf.encrypt = true;
-    peerInf.ifidx = WIFI_IF_STA;
-    if (esp_now_add_peer(&peerInf) != ESP_OK) {
+  for (auto &suInf: suInfo) {
+    suInf.peerInf.channel = 0;
+    suInf.peerInf.encrypt = true;
+    suInf.peerInf.ifidx = WIFI_IF_STA;
+    if (esp_now_add_peer(&suInf.peerInf) != ESP_OK) {
       Serial.println("Failed to add a peer please try again");
     }
   }
@@ -70,8 +73,12 @@ int SensorUnitManager::macInd(const uint8_t *mac) {
   int i;
   for (i = 0; i < suCount; i++) {
     found = true;
-    found = mac[0] == suPeerInf[i].peer_addr[0] && mac[1] == suPeerInf[i].peer_addr[1] && mac[2] == suPeerInf[i].peer_addr[2] && mac[3] == suPeerInf[i].peer_addr[3] && mac[4] == suPeerInf[i].peer_addr[4] && mac[5] == suPeerInf[i].peer_addr[5];
-
+    for (int j{0}; j < 6; j++) {
+      if (suInfo[i].peerInf.peer_addr[j] != mac[j]) {
+        found = false;
+        break;
+      }
+    }
     if (found) {
       break;
     }
@@ -101,8 +108,8 @@ void SensorUnitManager::handlePacket(const Packet& packet) {
     SensorDefinition sens;
     sens.fromString(d.str, sizeof(d));
     bool found = false;
-    for (int i{0}; i < sensorCount[ind]; i++) {
-      if (sens.sensor == sensors[ind][i].sensor) {
+    for (int i{0}; i < suInfo[ind].sensorCount; i++) {
+      if (sens.sensor == suInfo[ind].sensors[i].sensor) {
         found = true;
         break;  
       }
@@ -110,15 +117,15 @@ void SensorUnitManager::handlePacket(const Packet& packet) {
     if (found) {
       return;
     }
-    sensors[ind][sensorCount[ind]++] = sens;
+    suInfo[ind].sensors[suInfo[ind].sensorCount++] = sens;
 
     uint8_t totalReadingCount{0};
-    for (int i{0}; i < sensorCount[ind]; i++) {
-      totalReadingCount += sensors[ind][i].numValues;
+    for (int i{0}; i < suInfo[ind].sensorCount; i++) {
+      totalReadingCount += suInfo[ind].sensors[i].numValues;
     }
-    readingsArr[ind].setReadingCount(totalReadingCount);
+    suInfo[ind].readings.setReadingCount(totalReadingCount);
   } else [[likely]]{
-    readingsArr[ind].postReading(packet.packetData, packet.size, packet.info);
+    suInfo[ind].readings.postReading(packet.packetData, packet.size, packet.info);
   } 
 }
 

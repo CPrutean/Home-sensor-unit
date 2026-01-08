@@ -31,10 +31,10 @@ void pingTask(void* parameters) {
 
 //Will contain an int buffer, which will only change the internal error state and update status
 void errorCheckerTask(void *parameters) {
-    bool isTimedOut[MAXPEERS]{false, false, false, false, false, false};
+    SensorUnitManager::SensorUnitStatus status[6]{}; //Online is implicitly 0 so this initializes it to online
     int i{0};
     for (;;) {
-        SUM.msgAck.removeTimedOutReq(isTimedOut);
+        SUM.msgAck.removeTimedOutReq(status);
         vTaskDelay(10000/portTICK_PERIOD_MS);
     }
 }
