@@ -93,7 +93,7 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
 
       // Get readings from the SensorUnitReadings array
       SensorUnitReadings &suReadings = manager->readingsArr[i];
-      int numReadings = suReadings.getNumOfReadings();
+      int numReadings = suReadings.getReadingCount();
 
       // Add available readings
       for (int k = 0; k < sensorDef.numValues && k < 2; k++) {

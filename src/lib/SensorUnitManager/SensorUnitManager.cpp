@@ -95,11 +95,29 @@ void SensorUnitManager::handlePacket(const Packet& packet) {
   if (packet.type == Packet::ACK) {
     msgAck.removeAckArrItem(packet.msgID); 
     return;
-  } else if (packet.info.ind == 0 && packet.info.sensor == Sensors_t::BASE && packet.dataType == Packet::STRING_T) { //Used for initializing the sensor ind
+  } else if (packet.info.ind == 0 && packet.info.sensor == Sensors_t::BASE && packet.dataType == Packet::STRING_T) [[unlikely]]{ //Used for initializing the sensor 
     dataConverter d;
     memcpy(d.data, packet.packetData, packet.size);
-    sensors[ind][sensorCount[ind]++].fromString(d.str, packet.size);
-  } else {
+    SensorDefinition sens;
+    sens.fromString(d.str, sizeof(d));
+    bool found = false;
+    for (int i{0}; i < sensorCount[ind]; i++) {
+      if (sens.sensor == sensors[ind][i].sensor) {
+        found = true;
+        break;  
+      }
+    }
+    if (found) {
+      return;
+    }
+    sensors[ind][sensorCount[ind]++] = sens;
+
+    uint8_t totalReadingCount{0};
+    for (int i{0}; i < sensorCount[ind]; i++) {
+      totalReadingCount += sensors[ind][i].numValues;
+    }
+    readingsArr[ind].setReadingCount(totalReadingCount);
+  } else [[likely]]{
     readingsArr[ind].postReading(packet.packetData, packet.size, packet.info);
   } 
 }

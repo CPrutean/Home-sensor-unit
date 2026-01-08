@@ -87,8 +87,8 @@ struct SensorDefinition {
   void* fnMemAdr{nullptr};
 
 
-  void toString(char *buffer, size_t sizeOfBuffer) {
-    if (sizeOfBuffer == 0 || buffer == nullptr) {
+  void toString(char *buffer, size_t bufferSize) {
+    if (bufferSize == 0 || buffer == nullptr) {
       Serial.println("FAILED TO SERIALIZE: BUFFER INVALID");
       return;
     }
@@ -96,18 +96,18 @@ struct SensorDefinition {
     size_t offset = 0;
     int written = 0;
 
-    written = snprintf(buffer + offset, sizeOfBuffer - offset, "%s%s", name, STRSEPER);
-    
-    if (written < 0 || (size_t)written >= sizeOfBuffer - offset) return; 
+    written = snprintf(buffer + offset, bufferSize - offset, "%s%s", name, STRSEPER);
+
+    if (written < 0 || (size_t)written >= bufferSize - offset) return;
     offset += written;
 
     for (int i = 0; i < numValues; i++) {
-      written = snprintf(buffer + offset, sizeOfBuffer - offset, "%s%s", readingStringsArray[i], STRSEPER);
-      if (written < 0 || (size_t)written >= sizeOfBuffer - offset) break;
+      written = snprintf(buffer + offset, bufferSize - offset, "%s%s", readingStringsArray[i], STRSEPER);
+      if (written < 0 || (size_t)written >= bufferSize - offset) break;
       offset += written;
 
-      written = snprintf(buffer + offset, sizeOfBuffer - offset, "%d%s", static_cast<int>(msgType[i]), STRSEPER);
-      if (written < 0 || (size_t)written >= sizeOfBuffer - offset) break;
+      written = snprintf(buffer + offset, bufferSize - offset, "%d%s", static_cast<int>(msgType[i]), STRSEPER);
+      if (written < 0 || (size_t)written >= bufferSize - offset) break;
       offset += written;
     }
   }
