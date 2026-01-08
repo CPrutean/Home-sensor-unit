@@ -125,3 +125,13 @@ void SensorUnitManager::handlePacket(const Packet& packet) {
 uint8_t SensorUnitManager::getSuCount() {
   return suCount;
 }
+
+
+
+void SensorUnitManager::initSensorUnitSensors(int suIndex) {
+  Packet p;
+  p.info.ind = 0;
+  p.info.sensor = Sensors_t::BASE;
+  p.type = Packet::PING; 
+  this->sendToSu(p, suIndex);
+}

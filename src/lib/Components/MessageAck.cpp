@@ -88,30 +88,17 @@ void MessageAck::addNewAckArrItem(unsigned long long msgID, unsigned long long p
   xSemaphoreGiveRecursive(mutex);
 }
 
-// Remove timed out requests and return list of SU indexes that timed out
-void MessageAck::removeTimedOutReq(int* suNumList, int buffLen) {
+//Will post if a request timed out to a sensor unit at the given sensor unit index
+//Assume buffer is implicitly the size of the number of max peers
+void MessageAck::removeTimedOutReq(bool* suNumList) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
     return;
   }
 
   const unsigned long now = millis();
-  size_t writeIdx = 0;
-  for (size_t readIdx = 0; readIdx < size; ++readIdx) {
-    unsigned long elapsed = now - ackArr[readIdx].postTime;
-    if (elapsed > MAXTIMEOUT) {
-      // Optionally record timed out SU index if mapping exists; placeholder -1
-      if (suNumList) {
-        suNumList[readIdx] = -1;
-      }
-      continue; // drop this item
-    }
-    if (writeIdx != readIdx) {
-      ackArr[writeIdx] = ackArr[readIdx];
-    }
-    ++writeIdx;
-  }
-  size = writeIdx;
+
+   
   xSemaphoreGiveRecursive(mutex);
 }
 
