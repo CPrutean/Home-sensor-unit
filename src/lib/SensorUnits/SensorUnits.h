@@ -13,7 +13,7 @@ public:
   void handlePacket(const Packet &packet);
   MessageQueue msgQueue{};
   void initESPNOW();
-  explicit SensorUnit(uint8_t *cuMac, const char *PMKKEYIN, const char *LMKKEYIN, DHT *tempIn = nullptr, PIR *motion = nullptr);
+  explicit SensorUnit(const uint8_t *cuMac, const char *PMKKEYIN, const char *LMKKEYIN, DHT *tempIn = nullptr, PIR *motion = nullptr);
   void sendPacket(const Packet& p);
   SensorUnit() = delete;
   friend void sendAllPackets(SensorUnit& sensUnit);

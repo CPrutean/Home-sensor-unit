@@ -52,11 +52,15 @@ void SensorUnit::initSensorDefinition(SensorDefinition &sensorDef) {
     break;
   case (Sensors_t::BASE):
     snprintf(sensorDef.name, sizeof(sensorDef.name), "%s", "BASE");
+
     snprintf(sensorDef.readingStringsArray[0], sizeof(sensorDef.readingStringsArray[0]), "%s", "INIT");
     sensorDef.msgType[0] = Packet::READING;
-
-    snprintf(sensorDef.readingStringsArray[1], sizeof(sensorDef.readingStringsArray[1]), "%s", "ERROR"); //Sent to sensorUnitManagers when something erroneous has happened
+    
+    snprintf(sensorDef.readingStringsArray[1], sizeof(sensorDef.name), "%s", "PING");
     sensorDef.msgType[1] = Packet::READING;
+
+    snprintf(sensorDef.readingStringsArray[2], sizeof(sensorDef.readingStringsArray[2]), "%s", "ERROR"); //Sent to sensorUnitManagers when something erroneous has happened
+    sensorDef.msgType[2] = Packet::READING;
     //Should always be sent with an error code
     sensorDef.fnMemAdr = reinterpret_cast<void*>(baseCommands);
     sensorDef.numValues = 1;
@@ -77,7 +81,7 @@ mac address, the pointers to the Sensors, and the pointers to the motion sensors
 @param DHT* tempIN: Temperature sensor in if the sensor unit has one available, default param value is nullptr
 @param PIR* motionIn: Motion sensor in if the sensor unit has one available, default param value is nullptr 
 */
-SensorUnit::SensorUnit(uint8_t *cuMac, const char *PMKKEYIN, const char *LMKKEYIN, DHT *tempIn, PIR *motionIn)
+SensorUnit::SensorUnit(const uint8_t *cuMac, const char *PMKKEYIN, const char *LMKKEYIN, DHT *tempIn, PIR *motionIn)
 : temp{tempIn}, motion{motionIn} {
   memcpy(cuPeerInf.peer_addr, cuMac, 6);
   memcpy(cuPeerInf.lmk, LMKKEYIN, 16);
@@ -157,7 +161,18 @@ void SensorUnit::initESPNOW() {
   Serial.println("Finished initializing");
 }
 
-
+/*
+@breif: sends a packet to the SensorUnitManager via ESP-NOW
+@param const Packet& p: packet to be sent
+*/
+void SensorUnit::sendPacket(const Packet& p) {
+  esp_err_t result = esp_now_send(cuPeerInf.peer_addr, (uint8_t *)&p, sizeof(p));
+  if (result != ESP_OK) {
+    Serial.println("Packet failed to send");
+  } else {
+    Serial.println("Packet sent successfully");
+  }
+}
 
 void SensorUnit::handlePacket(const Packet &p) {
   Packet pac{};

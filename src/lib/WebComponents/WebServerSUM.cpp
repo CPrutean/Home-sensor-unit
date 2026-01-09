@@ -394,7 +394,7 @@ void handleRoot() {
 }
 
 // Function to initialize the AP web server
-void initAPWebServer(const char* apSSID = "SensorUnit_Config", const char* apPassword = "12345678", WebServer &server) {
+void initAPWebServer(const char* apSSID, const char* apPassword, WebServer &server) {
   // Load saved credentials
   preferences.begin("wifi", true);
   globServer = &server;
