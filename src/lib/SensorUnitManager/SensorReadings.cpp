@@ -113,4 +113,26 @@ void SensorUnitReadings::setReadingCount(int num) {
     xSemaphoreGiveRecursive(mutex);
 }
 
+void SensorUnitReadings::getReading(uint8_t *buffer, uint8_t bufferSize, PacketInfo_t info) {
+    if (buffer == nullptr || bufferSize  == 0) {
+        Serial.println("Invalid buffer values");
+        return;
+    }
 
+    int i;
+    bool found = false;
+    for (i = 0; i < readingCount; i++) {
+        if (info == readingInfo[i]) {
+            found = 1;
+            break;
+        }
+    }
+    
+    if (!found) {
+        Serial.println("Unable to find reading");
+    } else if (readingSizeArray[i] > bufferSize) {
+        Serial.println("Buffer too small for readings");
+    } else {
+        memcpy(buffer, readings[i], bufferSize);
+    }
+}
