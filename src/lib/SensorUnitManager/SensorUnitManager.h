@@ -1,12 +1,10 @@
 #pragma once
-#include <Components/MessageAck.h>
-#include <Components/MessageQueue.h>
 #include <Core/global_include.h>
 #include <WebServer.h>
 #include <WebComponents/WebServerSUM.h>
 #include <esp_now.h>
 
-#define MAXPEERS 6 
+#define MAXPEERS 6
 #define MAXSENSORS 3
 
 //Group readings by sensor unit
@@ -23,16 +21,22 @@ private:
   //All should be treated as arrays
   uint8_t readingCount{0}; //Treated as the length
   uint8_t **readings{nullptr};
-  uint8_t *readingSizeArray{nullptr};  //Treated as the length of the sub arrays of the readings 
-  PacketInfo_t *readingInfo{nullptr}; //Info of the sensor and the reading index 
+  uint8_t *readingSizeArray{nullptr};  //Treated as the length of the sub arrays of the readings
+  PacketInfo_t *readingInfo{nullptr}; //Info of the sensor and the reading index
   uint8_t readingCapacity{0};
   xSemaphoreHandle mutex;
 };
 
+// Enum moved outside class to break circular dependency with MessageAck
+enum class SensorUnitStatus : uint8_t {ONLINE = 0, ERROR, OFFLINE, NUMTYPES};
+
+// Include MessageQueue and MessageAck after SensorUnitStatus is defined
+#include <Components/MessageQueue.h>
+#include <Components/MessageAck.h>
+
 // SensorUnitManagers are responsible for sending and receiving messages between sensor units
 class SensorUnitManager final {
 public:
-  enum SensorUnitStatus:uint8_t{ONLINE = 0, ERROR, OFFLINE, NUMTYPES};
 
   struct SensorUnitInfo {
     SensorDefinition sensors[MAXSENSORS]{};
@@ -66,8 +70,8 @@ public:
   void initESPNOW();
   void initSensorUnitSensors(int suIndex);
   uint8_t getSuCount();
-  MessageQueue msgQueue();
-  MessageAck msgAck();
+  MessageQueue msgQueue{};
+  MessageAck msgAck{};
 protected:
   SensorUnitInfo suInfo[MAXPEERS]{};
   uint8_t suCount{};

@@ -63,9 +63,9 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
     // Add status information
     const char* statusStr = "UNKNOWN";
     switch(info.status) {
-      case SensorUnitManager::ONLINE: statusStr = "ONLINE"; break;
-      case SensorUnitManager::ERROR: statusStr = "ERROR"; break;
-      case SensorUnitManager::OFFLINE: statusStr = "OFFLINE"; break;
+      case SensorUnitStatus::ONLINE: statusStr = "ONLINE"; break;
+      case SensorUnitStatus::ERROR: statusStr = "ERROR"; break;
+      case SensorUnitStatus::OFFLINE: statusStr = "OFFLINE"; break;
       default: statusStr = "UNKNOWN"; break;
     }
     sensorUnitObj["status"] = statusStr;

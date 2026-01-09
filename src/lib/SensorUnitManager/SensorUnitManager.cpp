@@ -2,10 +2,14 @@
 #include <esp_now.h>
 
 // Single definition for the global manager pointer declared in the header
-static SensorUnitManager *sensUnitMngr = nullptr;
+SensorUnitManager *sensUnitMngr = nullptr;
 
 // Trivial destructor definition (was only declared in header)
 SensorUnitManager::~SensorUnitManager() = default;
+
+auto SensorUnitManager::getSensorUnitInfo(int ind) -> SensorUnitInfo& {
+  return suInfo[ind];
+}
 
 void SensorUnitManager::sendToSu(const Packet &packet, int suNum) {
   esp_err_t result = esp_now_send(suInfo[suNum].peerInf.peer_addr, (uint8_t *)&packet, sizeof(packet));
