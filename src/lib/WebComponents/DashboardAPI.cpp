@@ -49,12 +49,11 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
 
   // Create sensor units array - group sensors by their sensor unit
   JsonArray sensorUnits = doc["sensorUnits"].to<JsonArray>();
-  SensorUnitManager::SensorUnitInfo info;
+  SensorUnitInfo info;
   // Iterate through all sensor units managed by the manager
   for (int i = 0; i < manager->getSuCount(); i++) {
-    if (info.sensorCount == 0) continue; // Skip if no sensors for this unit
-
     info = manager->getSensorUnitInfo(i);
+    if (info.sensorCount == 0) continue; // Skip if no sensors for this unit
 
     JsonObject sensorUnitObj = sensorUnits.add<JsonObject>();
     sensorUnitObj["unitIndex"] = i;
