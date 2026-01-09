@@ -18,6 +18,7 @@ public:
   void postReading(const uint8_t *data, uint8_t readingSize, PacketInfo_t readingInfo);
   int getReadingCount();
   void setReadingCount(int readingCount); //Will also resize the internal arrays to accomodate for size if need be
+  void getReading(uint8_t *buffer, uint8_t bufferSize, PacketInfo_t packet);
 private:
   //All should be treated as arrays
   uint8_t readingCount{0}; //Treated as the length
@@ -65,8 +66,8 @@ public:
   void initESPNOW();
   void initSensorUnitSensors(int suIndex);
   uint8_t getSuCount();
-  MessageQueue msgQueue{};
-  MessageAck msgAck{};
+  MessageQueue msgQueue();
+  MessageAck msgAck();
 protected:
   SensorUnitInfo suInfo[MAXPEERS]{};
   uint8_t suCount{};
