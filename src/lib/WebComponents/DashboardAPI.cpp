@@ -49,10 +49,12 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
 
   // Create sensor units array - group sensors by their sensor unit
   JsonArray sensorUnits = doc["sensorUnits"].to<JsonArray>();
-
+  SensorUnitManager::SensorUnitInfo info;
   // Iterate through all sensor units managed by the manager
-  for (int i = 0; i < MAXPEERS; i++) {
-    if (manager->sensorCount[i] == 0) continue; // Skip if no sensors for this unit
+  for (int i = 0; i < manager->getSuCount(); i++) {
+    if (info.sensorCount == 0) continue; // Skip if no sensors for this unit
+
+    info = manager->getSensorUnitInfo(i);
 
     JsonObject sensorUnitObj = sensorUnits.add<JsonObject>();
     sensorUnitObj["unitIndex"] = i;
@@ -60,7 +62,7 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
 
     // Add status information
     const char* statusStr = "UNKNOWN";
-    switch(manager->suStatus[i]) {
+    switch(info.status) {
       case SensorUnitManager::ONLINE: statusStr = "ONLINE"; break;
       case SensorUnitManager::ERROR: statusStr = "ERROR"; break;
       case SensorUnitManager::OFFLINE: statusStr = "OFFLINE"; break;
@@ -72,8 +74,8 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
     JsonArray sensors = sensorUnitObj["sensors"].to<JsonArray>();
 
     // For each sensor definition in this sensor unit
-    for (int j = 0; j < manager->sensorCount[i]; j++) {
-      SensorDefinition &sensorDef = manager->sensors[i][j];
+    for (int j = 0; j < info.sensorCount; j++) {
+      SensorDefinition &sensorDef = info.sensors[j];
 
       JsonObject sensorObj = sensors.add<JsonObject>();
       sensorObj["name"] = String(sensorDef.name);
@@ -92,21 +94,32 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
       JsonArray readings = sensorObj["readings"].to<JsonArray>();
 
       // Get readings from the SensorUnitReadings array
-      SensorUnitReadings &suReadings = manager->readingsArr[i];
+      SensorUnitReadings &suReadings = info.readings;
       int numReadings = suReadings.getReadingCount();
 
       // Add available readings
-      for (int k = 0; k < sensorDef.numValues && k < 2; k++) {
+      dataConverter d;
+      for (uint8_t k = 0; k < sensorDef.numValues && k < 2; k++) {
         JsonObject reading = readings.add<JsonObject>();
         reading["name"] = String(sensorDef.readingStringsArray[k]);
-        reading["value"] = 0; // Placeholder - actual value extraction needed
+        String readingVal{};
+        suReadings.getReading(d.data, sizeof(d), {sensorDef.sensor, k});
+        switch(sensorDef.dataType[k]) {
+          case(Packet::STRING_T): readingVal = d.str; break;
+          case(Packet::DOUBLE_T): readingVal = String(d.d); break;
+          case(Packet::FLOAT_T): readingVal = String(d.f); break;
+          case(Packet::INT_T): readingVal = String(d.i); break;
+          case(Packet::NULL_T): readingVal = "NULL"; break;
+          default: readingVal = "INVALID TYPE"; break;
+        };
+        reading["value"] = readingVal; 
         reading["timestamp"] = millis() / 1000;
       }
     }
   }
 
   String response;
-  serializeJson(doc, response);
+  ArduinoJson::serializeJson(doc, response);
 
   server.send(200, "application/json", response);
 }
