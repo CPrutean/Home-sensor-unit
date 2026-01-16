@@ -15,8 +15,13 @@ public:
   void initESPNOW();
   explicit SensorUnit(const uint8_t *cuMac, const char *PMKKEYIN, const char *LMKKEYIN, DHT *tempIn = nullptr, PIR *motion = nullptr);
   void sendPacket(const Packet& p);
+
+  #ifndef TESTING
   SensorUnit() = delete;
-  friend void sendAllPackets(SensorUnit& sensUnit);
+  #else
+  explicit SensorUnit();
+  #endif
+  friend void sendAllPackets(SensorUnit& sensUnit); //Outside of these 2 friend methods, no sensors should have access to internal private members
   friend void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind);
   DHT *temp{nullptr};
   PIR *motion{nullptr};
@@ -26,7 +31,7 @@ private:
   esp_now_peer_info_t cuPeerInf{};
   char PMKKEY[16]{};
   char CULMKKEY[16]{};
-  SensorDefinition sensorsAvlbl[static_cast<int>(Sensors_t::NUM_OF_SENSORS)]{};
+  SensorDefinition sensorsAvlbl[MAXSENSORS]{};
   uint8_t sensCount{};
 };
 
