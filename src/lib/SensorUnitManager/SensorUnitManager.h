@@ -5,8 +5,6 @@
 #include <esp_now.h>
 #include "ManagerTypes.h"
 
-#define MAXPEERS 6
-#define MAXSENSORS 3
 // Include MessageQueue and MessageAck after SensorUnitStatus is defined
 #include <Components/MessageQueue.h>
 #include <Components/MessageAck.h>
@@ -29,9 +27,13 @@ public:
     strncpy(PMKKEY, PMKKEYIN, 16);
     servPtr = &serv;
   }
-
-
+   
+  #ifndef TESTING 
   SensorUnitManager() = delete;
+  #else
+  explicit SensorUnitManager();
+  #endif 
+
   void sendToSu(const Packet &p, int suNum);
   void handlePacket(const Packet &packet);
   void initESPNOW();
