@@ -2,6 +2,7 @@
 
 #include <WebServer.h>
 #include <SensorUnitManager/SensorUnitManager.h>
+#include "../SensorUnitManager/ManagerTypes.h"
 
 // Initialize dashboard routes on the web server for SensorUnitManager
 // This will set up routes for the dashboard HTML and API endpoints
