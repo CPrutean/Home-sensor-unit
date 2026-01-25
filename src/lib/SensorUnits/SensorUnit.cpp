@@ -100,6 +100,7 @@ SensorUnit::SensorUnit(const uint8_t *cuMac, const char *PMKKEYIN, const char *L
   initSensorDefinition(sensorsAvlbl[count++]);
   sensCount = count;
   memcpy(PMKKEY, PMKKEYIN, 16);
+  sensUnitPtr = this;
 }
 
 
@@ -159,12 +160,16 @@ void SensorUnit::initESPNOW() {
     Serial.println("Failed to add SensUnitManager as a peer please try again");
   }
 
+<<<<<<< HEAD
   esp_now_register_recv_cb(esp_now_recv_cb_t(sensUnitRecvCB));
   esp_now_register_send_cb(esp_now_send_cb_t(sensUnitSendCB));
 
 
 
   Serial.println("Finished initializing");
+=======
+  Serial.println("Finished initializing ESP-NOW");
+>>>>>>> 6cc64dfebdbed8485514fe5c3a61a680deec0b31
 }
 
 /*
@@ -304,3 +309,12 @@ static void writeErrorMsg(Packet& p, dataConverter& d , const char* errormsg) {
   snprintf(d.str, len, "%s", errormsg); 
   p.writeToPacket(d, len);
 }
+
+#ifdef TESTING
+SensorUnit::SensorUnit() { //Create fake sensors 
+  for (int i{0}; i < 3; i++) {
+    sensorsAvlbl[i].sensor = static_cast<Sensors_t>(i);
+    initSensorDefinition(sensorsAvlbl[i]);
+  }  
+}
+#endif
