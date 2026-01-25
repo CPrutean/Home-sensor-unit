@@ -6,7 +6,7 @@ public:
   bool send(const Packet &packet);
   bool receive(Packet &packet);
   QueueHandle_t getQueueHandle() const;
-  MessageQueue();
+  explicit MessageQueue();
   ~MessageQueue();
 
 private:

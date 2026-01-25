@@ -2,7 +2,22 @@
 #include <esp_now.h>
 
 // Single definition for the global manager pointer declared in the header
-SensorUnitManager *sensUnitMngr = nullptr;
+static SensorUnitManager *sensUnitMngr = nullptr;
+
+ 
+SensorUnitManager::SensorUnitManager(const uint8_t macAdrIn[MAXPEERS][6], uint8_t suCountIn, WebServer &serv, const char *PMKKEYIN, const char **LMKKEYSIN):
+suCount{suCountIn} {
+  sensUnitMngr = this; //For setting up 
+  this->servPtr = &serv;
+
+  memcpy(PMKKEY, PMKKEYIN, 16);
+  for (int i{0}; i < suCountIn; i++) {
+    memcpy(suInfo[i].peerInf.peer_addr, macAdrIn[i], 6);
+    memcpy(suInfo[i].peerInf.lmk, LMKKEYSIN[i], 16);
+  }
+}
+ 
+
 
 // Trivial destructor definition (was only declared in header)
 SensorUnitManager::~SensorUnitManager() = default;
@@ -30,12 +45,18 @@ void sensUnitManagerSendCB(const uint8_t *mac, esp_now_send_status_t status) {
   }
 }
 
+
+
+
 void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, int dataLen) {
+  Serial.println("Packet Recieved");
   Packet packet{};
   memcpy(&packet, data, sizeof(Packet));
   memcpy(packet.senderAddr, recvInfo->src_addr, 6);
   if (sensUnitMngr != nullptr) {
     sensUnitMngr->msgQueue.send(packet);
+  } else {
+    Serial.println("Failed to send to queue");
   }
 }
 
@@ -59,21 +80,25 @@ void SensorUnitManager::initESPNOW() {
   sensUnitMngr = this; //Used for initializing global callbacks
 
   esp_now_set_pmk((uint8_t *)PMKKEY);
+  for (int i{0}; i < suCount; i++) {
+    suInfo[i].peerInf.channel = 0;
+    suInfo[i].peerInf.encrypt = false;
+    suInfo[i].peerInf.ifidx = WIFI_IF_STA;
+    if (esp_now_add_peer(&suInfo[i].peerInf) != ESP_OK) {
+      Serial.println("Failed to add a peer please try again");
+    }
+ 
+  }
+
   esp_now_register_recv_cb(esp_now_recv_cb_t(sensUnitManagerRecvCB));
   esp_now_register_send_cb(esp_now_send_cb_t(sensUnitManagerSendCB));
 
-  for (auto &suInf: suInfo) {
-    suInf.peerInf.channel = 0;
-    suInf.peerInf.encrypt = true;
-    suInf.peerInf.ifidx = WIFI_IF_STA;
-    if (esp_now_add_peer(&suInf.peerInf) != ESP_OK) {
-      Serial.println("Failed to add a peer please try again");
-    }
-  }
   Serial.println("Finished ESPNOWINIT");
 }
+
+
 int SensorUnitManager::macInd(const uint8_t *mac) {
-  bool found = true;
+  bool found = false;
   int i;
   for (i = 0; i < suCount; i++) {
     found = true;
@@ -104,9 +129,18 @@ void SensorUnitManager::handlePacket(const Packet& packet) {
 
 
   if (packet.type == Packet::ACK) {
-    msgAck.removeAckArrItem(packet.msgID); 
+    msgAck.removeAckArrItem(packet.msgID);
     return;
-  } else if (packet.info.ind == 0 && packet.info.sensor == Sensors_t::BASE && packet.dataType == Packet::STRING_T) [[unlikely]]{ //Used for initializing the sensor 
+  }
+
+  // Send ACK back to the sender for non-ACK packets
+  Packet ackPacket{};
+  ackPacket.msgID = packet.msgID;
+  ackPacket.type = Packet::ACK;
+  ackPacket.dataType = Packet::NULL_T;
+  sendToSu(ackPacket, ind);
+
+  if (packet.info.ind == 0 && packet.info.sensor == Sensors_t::BASE && packet.dataType == Packet::STRING_T) [[unlikely]]{ //Used for initializing the sensor 
     dataConverter d;
     memcpy(d.data, packet.packetData, packet.size);
     SensorDefinition sens;

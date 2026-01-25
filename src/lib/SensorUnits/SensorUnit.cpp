@@ -8,12 +8,12 @@ void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind);
 void initSensUnit(SensorUnit& sensUnit);
 void handlePostRequests(SensorUnit& sensUnit);
 // Forward declaration to allow use before definition
-void writeErrorMsg(Packet& p, dataConverter& d , std::string_view errormsg);
+static void writeErrorMsg(Packet& p, dataConverter& d , const char* errormsg);
 
 using defaultFnMethods = void(*)(SensorUnit&, Packet& p, uint8_t);
 
 // Single definition of the global pointer declared in SensorUnits.h
-SensorUnit* sensUnitPtr = nullptr;
+static SensorUnit* sensUnitPtr = nullptr;
 
 //This is a directive which defines the method parameters 
 //Defines a cmdFunc as a function which returns void and takes in the parameters of SensorUnit& Packet& and uint8_t
@@ -72,17 +72,18 @@ void SensorUnit::initSensorDefinition(SensorDefinition &sensorDef) {
 }
 
 
-/*
+/** 
 @breif: Default constructor for sensor units copies the essential LMKKEYS and PMKKEYS internally for encryption, the SensorUnitManager
 mac address, the pointers to the Sensors, and the pointers to the motion sensors
-@param uint8_t* cuMac: pointer to the array that contains the SensorUnitManager mac address
-@param const char* PMKKEYIN: PMKKEY for standard ESP32 encryption
-@param const char* LMKKEYIN: LMKKEY for standard ESP32 encryption
-@param DHT* tempIN: Temperature sensor in if the sensor unit has one available, default param value is nullptr
-@param PIR* motionIn: Motion sensor in if the sensor unit has one available, default param value is nullptr 
+@param: uint8_t* cuMac: pointer to the array that contains the SensorUnitManager mac address
+@param: const char* PMKKEYIN: PMKKEY for standard ESP32 encryption
+@param: const char* LMKKEYIN: LMKKEY for standard ESP32 encryption
+@param: DHT* tempIN: Temperature sensor in if the sensor unit has one available, default param value is nullptr
+@param: PIR* motionIn: Motion sensor in if the sensor unit has one available, default param value is nullptr 
 */
 SensorUnit::SensorUnit(const uint8_t *cuMac, const char *PMKKEYIN, const char *LMKKEYIN, DHT *tempIn, PIR *motionIn)
 : temp{tempIn}, motion{motionIn} {
+  sensUnitPtr = this;
   memcpy(cuPeerInf.peer_addr, cuMac, 6);
   memcpy(cuPeerInf.lmk, LMKKEYIN, 16);
   uint8_t count{0};
@@ -110,10 +111,13 @@ SensorUnit::SensorUnit(const uint8_t *cuMac, const char *PMKKEYIN, const char *L
 */
 void sensUnitRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, int dataLen) {
   //Assumes sensUnitPtr is properly initialized
+  Serial.println("Recieved Packet");
   Packet p{};
   memcpy(&p, data, sizeof(Packet));
-  if (sensUnitPtr != nullptr) {
+  if (sensUnitPtr != nullptr) [[likely]]{
     sensUnitPtr->msgQueue.send(p);
+  } else {
+    Serial.println("Failed to send to queue");
   }
 }
 
@@ -147,16 +151,18 @@ void SensorUnit::initESPNOW() {
   }
 
   esp_now_set_pmk((uint8_t *)PMKKEY);
-  esp_now_register_recv_cb(esp_now_recv_cb_t(sensUnitRecvCB));
-  esp_now_register_send_cb(esp_now_send_cb_t(sensUnitSendCB));
-
   cuPeerInf.channel = 0;
-  cuPeerInf.encrypt = true;
+  cuPeerInf.encrypt = false;
   cuPeerInf.ifidx = WIFI_IF_STA;
 
   if (esp_now_add_peer(&cuPeerInf) != ESP_OK) {
     Serial.println("Failed to add SensUnitManager as a peer please try again");
   }
+
+  esp_now_register_recv_cb(esp_now_recv_cb_t(sensUnitRecvCB));
+  esp_now_register_send_cb(esp_now_send_cb_t(sensUnitSendCB));
+
+
 
   Serial.println("Finished initializing");
 }
@@ -290,10 +296,11 @@ void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
 }
 
 
-void writeErrorMsg(Packet& p, dataConverter& d , std::string_view errormsg) {
+static void writeErrorMsg(Packet& p, dataConverter& d , const char* errormsg) {
   p.info.sensor = Sensors_t::BASE;
   p.info.ind = 1;
   p.dataType = Packet::STRING_T;
-  snprintf(d.str, sizeof(d.str), "%s", errormsg); 
-  p.writeToPacket(d, errormsg.length());
+  size_t len = strlen(errormsg);
+  snprintf(d.str, len, "%s", errormsg); 
+  p.writeToPacket(d, len);
 }
