@@ -82,7 +82,6 @@ void errorCheckerTask(void *parameters) {
 }
 
 void setup() {
-<<<<<<< HEAD
     Serial.begin(115200);
     SUM.initESPNOW();
     //Assuming esp-now init code works fine then this should work just fine
@@ -92,14 +91,12 @@ void setup() {
     xTaskCreatePinnedToCore(packetHandlerTask, "Packet Handler Task", 8192, NULL, 1, NULL, 0);
     xTaskCreatePinnedToCore(pingTask, "Sensor Ping Task", 2048, NULL, 1, NULL, 1);
     xTaskCreatePinnedToCore(errorCheckerTask, "Packet Status Checker", 2048, NULL, 1, NULL, 0);
-=======
   Serial.begin(115200);
   SUM.initESPNOW();
   // Assuming esp-now init code works fine then this should work just fine
   for (int i{0}; i < SUM.getSuCount(); i++) {
     SUM.initSensorUnitSensors(i);
   }
->>>>>>> 6cc64dfebdbed8485514fe5c3a61a680deec0b31
 }
 
 void loop() {}
