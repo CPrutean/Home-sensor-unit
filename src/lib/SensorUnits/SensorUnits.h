@@ -29,6 +29,3 @@ private:
   SensorDefinition sensorsAvlbl[static_cast<int>(Sensors_t::NUM_OF_SENSORS)]{};
   uint8_t sensCount{};
 };
-
-// Declaration only. Definition lives in a single translation unit.
-extern SensorUnit *sensUnitPtr;

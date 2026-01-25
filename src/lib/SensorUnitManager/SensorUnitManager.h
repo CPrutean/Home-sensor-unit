@@ -50,20 +50,7 @@ public:
   auto getSensorUnitInfo(int ind) -> SensorUnitInfo&;
   SensorUnitManager(const SensorUnitManager &) = delete;
   virtual ~SensorUnitManager();
-  explicit SensorUnitManager(const uint8_t macAdrIn[MAXPEERS][6], size_t suCountIn, WebServer &serv, const char *PMKKEYIN, const char **LMKKEYSIN)
-  : suCount{suCountIn} {
-    memset(suInfo, 0, sizeof(suInfo));
-
-    for (int i = 0; i < suCountIn; i++) {
-      memcpy(suInfo[i].peerInf.peer_addr, macAdrIn[i], 6);
-      suInfo[i].peerInf.encrypt = true;
-      memcpy(suInfo[i].peerInf.lmk, LMKKEYSIN[i], 16);
-    }
-    strncpy(PMKKEY, PMKKEYIN, 16);
-    servPtr = &serv;
-  }
-
-
+  explicit SensorUnitManager(const uint8_t macAdrIn[MAXPEERS][6], uint8_t suCountIn, WebServer &serv, const char *PMKKEYIN, const char **LMKKEYSIN);
   SensorUnitManager() = delete;
   void sendToSu(const Packet &p, int suNum);
   void handlePacket(const Packet &packet);
@@ -80,7 +67,6 @@ protected:
   int macInd(const uint8_t *mac);
   WebServer* servPtr{nullptr};
 };
-extern SensorUnitManager *sensUnitMngr;
 
 void sensUnitManagerSendCB(const uint8_t *mac, esp_now_send_status_t status);
 void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, int dataLen);
