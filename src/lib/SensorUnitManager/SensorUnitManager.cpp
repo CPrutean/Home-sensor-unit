@@ -4,10 +4,23 @@
 // Single definition for the global manager pointer declared in the header
 static SensorUnitManager *sensUnitMngr = nullptr;
 
- 
-SensorUnitManager::SensorUnitManager(const uint8_t macAdrIn[MAXPEERS][6], uint8_t suCountIn, WebServer &serv, const char *PMKKEYIN, const char **LMKKEYSIN):
-suCount{suCountIn} {
-  sensUnitMngr = this; //For setting up 
+
+/**
+ * @breif: Default constructor for the sensor unit manager,
+ * which stores the mac addresses, initializes the web server pointer, and 
+ * stores the necessary keys for internal encryption algorithmns
+ * @param macAdrIn: mac addresses we are passing in
+ * @param suCountIn: count of sensor units we are passing
+ * @param serv: Web server object reference we are trying to pass for later website functinality
+ * @param PMKKEYIN: PMKKEY for encryption we are passing in
+ * @param LMKKEYSIN: multiple LMKKEYS we are passing for each sensor unit
+ */
+SensorUnitManager::SensorUnitManager(const uint8_t macAdrIn[MAXPEERS][6],
+                                     uint8_t suCountIn, WebServer &serv,
+                                     const char *PMKKEYIN,
+                                     const char **LMKKEYSIN)
+    : suCount{suCountIn} {
+  sensUnitMngr = this; // For setting up
   this->servPtr = &serv;
 
   memcpy(PMKKEY, PMKKEYIN, 16);
@@ -16,18 +29,28 @@ suCount{suCountIn} {
     memcpy(suInfo[i].peerInf.lmk, LMKKEYSIN[i], 16);
   }
 }
- 
-
 
 // Trivial destructor definition (was only declared in header)
 SensorUnitManager::~SensorUnitManager() = default;
 
-auto SensorUnitManager::getSensorUnitInfo(int ind) -> SensorUnitInfo& {
+/**
+ * @breif: returns information based on the sensor unit index requested
+ * @param ind: index of the sensor unit we are requesting
+ * @return: reference to the SensorUnitInfo
+ */
+auto SensorUnitManager::getSensorUnitInfo(int ind) -> SensorUnitInfo & {
   return suInfo[ind];
 }
 
+
+/**
+ * @breif: sends packet to requested sensor unit
+ * @param packet: packet we are sending to the sensor unit
+ * @param suNum: sensor unit index that we are sending the message to
+ */
 void SensorUnitManager::sendToSu(const Packet &packet, int suNum) {
-  esp_err_t result = esp_now_send(suInfo[suNum].peerInf.peer_addr, (uint8_t *)&packet, sizeof(packet));
+  esp_err_t result = esp_now_send(suInfo[suNum].peerInf.peer_addr,
+                                  (uint8_t *)&packet, sizeof(packet));
   if (result != ESP_OK) {
     Serial.println("Packet failed to send");
   } else {
@@ -35,8 +58,12 @@ void SensorUnitManager::sendToSu(const Packet &packet, int suNum) {
   }
 }
 
-// Method callback should be light, there is nothing to be done here but ensure
-// that the user can read the input
+
+/**
+ * @breif: default sender callback for ESP-NOW
+ * @param mac: mac addresss of the sender 
+ * @param status: status of the data send
+ */
 void sensUnitManagerSendCB(const uint8_t *mac, esp_now_send_status_t status) {
   if (status == ESP_OK) {
     Serial.println("Packet Success");
@@ -44,11 +71,14 @@ void sensUnitManagerSendCB(const uint8_t *mac, esp_now_send_status_t status) {
     Serial.println("Packet failed");
   }
 }
-
-
-
-
-void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, int dataLen) {
+/**
+ * @breif: default message reciever callback, sends a packet to the internal queue
+ * @param recvInfo: esp_now struct that holds the reciever and sender address 
+ * @param data: data being sent to the esp-devices
+ * @param datalen: size of the data being sent
+ */
+void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo,
+                           const uint8_t *data, int dataLen) {
   Serial.println("Packet Recieved");
   Packet packet{};
   memcpy(&packet, data, sizeof(Packet));
@@ -60,8 +90,9 @@ void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *d
   }
 }
 
-// Will only work if local PMKKEY and LMKKEY variables have been properly
-// initialized
+/**
+ * @breif: Initializes esp-now, adds Sensor unit managers as esp-now peers. Initializes the PMK and LMK keys and enables encryption
+ */
 void SensorUnitManager::initESPNOW() {
   if (PMKKEY[0] == '\0') {
     Serial.println(
@@ -76,8 +107,7 @@ void SensorUnitManager::initESPNOW() {
     return;
   }
 
-
-  sensUnitMngr = this; //Used for initializing global callbacks
+  sensUnitMngr = this; // Used for initializing global callbacks
 
   esp_now_set_pmk((uint8_t *)PMKKEY);
   for (int i{0}; i < suCount; i++) {
@@ -87,7 +117,6 @@ void SensorUnitManager::initESPNOW() {
     if (esp_now_add_peer(&suInfo[i].peerInf) != ESP_OK) {
       Serial.println("Failed to add a peer please try again");
     }
- 
   }
 
   esp_now_register_recv_cb(esp_now_recv_cb_t(sensUnitManagerRecvCB));
@@ -97,6 +126,12 @@ void SensorUnitManager::initESPNOW() {
 }
 
 
+
+/**
+ * @breif: returns the index of the SensorUnit based on the mac address
+ * @param mac: mac address we are trying to find the address of
+ * @return: returns the index corresponding to the mac address, returns -1 if the mac address isnt found
+ */
 int SensorUnitManager::macInd(const uint8_t *mac) {
   bool found = false;
   int i;
@@ -120,27 +155,30 @@ int SensorUnitManager::macInd(const uint8_t *mac) {
   }
 }
 
-void SensorUnitManager::handlePacket(const Packet& packet) {
+
+/**
+ * @breif: handles a packet recived from the Sensor units
+ * if it is an ACK packet then remove it from the internal MessageAck object
+ * if it is a READING post it to the SensorUnitInfo readings values
+ * otherwise assume packet was faulty
+ * 
+ * @param packet: Packet we are trying to handle
+ */
+void SensorUnitManager::handlePacket(const Packet &packet) {
   int ind = macInd(packet.senderAddr);
   if (ind == -1) {
     Serial.println("Failed to handle packet");
     return;
   }
 
+  //Removed ack here since sensor units dont need ack we want ack from the sensor units
 
   if (packet.type == Packet::ACK) {
     msgAck.removeAckArrItem(packet.msgID);
     return;
   }
 
-  // Send ACK back to the sender for non-ACK packets
-  Packet ackPacket{};
-  ackPacket.msgID = packet.msgID;
-  ackPacket.type = Packet::ACK;
-  ackPacket.dataType = Packet::NULL_T;
-  sendToSu(ackPacket, ind);
-
-  if (packet.info.ind == 0 && packet.info.sensor == Sensors_t::BASE && packet.dataType == Packet::STRING_T) [[unlikely]]{ //Used for initializing the sensor 
+  if (packet.info.ind == 0 && packet.info.sensor == Sensors_t::BASE && packet.dataType == Packet::STRING_T) [[unlikely]] { // Used for initializing the sensor
     dataConverter d;
     memcpy(d.data, packet.packetData, packet.size);
     SensorDefinition sens;
@@ -149,7 +187,7 @@ void SensorUnitManager::handlePacket(const Packet& packet) {
     for (int i{0}; i < suInfo[ind].sensorCount; i++) {
       if (sens.sensor == suInfo[ind].sensors[i].sensor) {
         found = true;
-        break;  
+        break;
       }
     }
     if (found) {
@@ -162,21 +200,29 @@ void SensorUnitManager::handlePacket(const Packet& packet) {
       totalReadingCount += suInfo[ind].sensors[i].numValues;
     }
     suInfo[ind].readings.setReadingCount(totalReadingCount);
-  } else [[likely]]{
+  } else if (packet.type == Packet::READING)[[likely]] {
     suInfo[ind].readings.postReading(packet.packetData, packet.size, packet.info);
-  } 
+  } else {
+    Serial.println("Invalid packet type");
+  }
 }
+/**
+ * 
+ * @breif: returns the amount of sensor units available
+ * @return: returns the number of sensor units available
+ */
+uint8_t SensorUnitManager::getSuCount() { return suCount; }
 
-uint8_t SensorUnitManager::getSuCount() {
-  return suCount;
-}
 
-
-
+/**
+ * @breif: Sends a packet to the sensor unit asking the sensor unit to send all of the sensors it has available serialized
+ * @param suIndex: index of the sensor unit we are trying to initialize
+ * 
+ */
 void SensorUnitManager::initSensorUnitSensors(int suIndex) {
   Packet p;
   p.info.ind = 0;
   p.info.sensor = Sensors_t::BASE;
-  p.type = Packet::PING; 
+  p.type = Packet::PING;
   this->sendToSu(p, suIndex);
 }

@@ -2,7 +2,7 @@
 #include <SensorUnitManager/SensorUnitManager.h>
 #define MAXTIMEOUT 10000
 
-/*
+/** 
 @breif: Default constructor for MessageAck object
 */
 MessageAck::MessageAck() {
@@ -11,7 +11,7 @@ MessageAck::MessageAck() {
   mutex = xSemaphoreCreateRecursiveMutex();
 }
 
-/*
+/** 
 @breif: Resizes internal array for improved performance when needed
 */
 void MessageAck::resize() {
@@ -36,9 +36,9 @@ void MessageAck::resize() {
   xSemaphoreGiveRecursive(mutex);
 }
 
-/*
+/** 
 @breif: removes an ackArrItem based on the group ID passed
-@param unsigned long long msgID: message group ID to be removed
+@param: unsigned long long msgID: message group ID to be removed
 */
 bool MessageAck::removeAckArrItem(unsigned long long msgID) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
@@ -69,9 +69,9 @@ bool MessageAck::removeAckArrItem(unsigned long long msgID) {
   xSemaphoreGiveRecursive(mutex);
   return true;
 }
-/*
+/** 
 @breif: creates a new ackListItem object with a new msg groupID
-@param unsigned long long msgID: message group ID to associate with different packets
+@param: message group ID to associate with different packets
 */
 void MessageAck::addNewAckArrItem(unsigned long long msgID, unsigned long long postTime) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
@@ -88,9 +88,10 @@ void MessageAck::addNewAckArrItem(unsigned long long msgID, unsigned long long p
 
   xSemaphoreGiveRecursive(mutex);
 }
-
-//Will post if a request timed out to a sensor unit at the given sensor unit index
-//Assume buffer is implicitly the size of the number of max peers
+/**
+ * @breif: will remove timed out requests from the message ack queue and increment the error status of a request
+ * @param: suNumList, an array of Sensor unit status objects. The index of the array corresponds to the sensor units inside the Sensor unit managers
+ */
 void MessageAck::removeTimedOutReq(SensorUnitStatus* suNumList) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
@@ -106,7 +107,7 @@ void MessageAck::removeTimedOutReq(SensorUnitStatus* suNumList) {
   xSemaphoreGiveRecursive(mutex);
 }
 
-/*
+/** 
 @breif: destructor frees internal ackListItem array
 */
 MessageAck::~MessageAck() {

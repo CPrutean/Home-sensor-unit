@@ -1,5 +1,9 @@
 #include "SensorUnitManager.h"
 
+
+/**
+ * @breif: Default sensor unit reading constructor. Initializes reading arrays for one reading to hold one integer initially
+ */
 SensorUnitReadings::SensorUnitReadings() {
     readingCount = 1;
     readings = new uint8_t*[1];
@@ -11,6 +15,11 @@ SensorUnitReadings::SensorUnitReadings() {
     mutex = xSemaphoreCreateRecursiveMutex();
 }
 
+
+/**
+ * @breif: returns the number of readings stored internally
+ * @return: Returns the number of readings available
+ */
 int SensorUnitReadings::getReadingCount() {
     if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
         Serial.println("FAILED TO TAKE MUTEX IN SENSOR READINGS RETURNING");
@@ -21,6 +30,12 @@ int SensorUnitReadings::getReadingCount() {
     return num;
 }
 
+/**
+ * @breif: posts a reading to the internal object based on the PacketInfo parameter
+ * @param data: pointer to the bytes of data we are posting to the internal object
+ * @param readingSize: the size of the reading we are posting
+ * @param packInfo: The information on the sensor and the index of the command we are storing
+ */
 void SensorUnitReadings::postReading(const uint8_t *data, uint8_t readingSize, PacketInfo_t packInfo) {
     if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
         Serial.println("Failed to take mutex in SensorReadings");
@@ -53,7 +68,13 @@ void SensorUnitReadings::postReading(const uint8_t *data, uint8_t readingSize, P
     xSemaphoreGiveRecursive(mutex);
 }
 
-//Will resize internal arrays if larger otherwise will free values that are lower
+
+/** 
+ @breif: sets the internal reading count, if resized to larger than its original size it copies the data 
+if resized to smaller resets the sotrage and assumes empty states
+ @param num: number of readings we are resizing the internal memory to
+
+*/
 void SensorUnitReadings::setReadingCount(int num) {
     if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
         Serial.println("Failed to take mutex in SensorReadings");
@@ -113,6 +134,12 @@ void SensorUnitReadings::setReadingCount(int num) {
     xSemaphoreGiveRecursive(mutex);
 }
 
+/**
+ * @breif: returns a reading into a buffer based on the PacketInfo requested
+ * @param buffer: the buffer we are writing the data to
+ * @param bufferSize: the size of the buffer we are writing to
+ * @param info: Specific sensor reading we are requesting
+ */
 void SensorUnitReadings::getReading(uint8_t *buffer, uint8_t bufferSize, PacketInfo_t info) {
     if (buffer == nullptr || bufferSize  == 0) {
         Serial.println("Invalid buffer values");
