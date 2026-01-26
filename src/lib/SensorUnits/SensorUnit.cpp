@@ -18,9 +18,9 @@ static SensorUnit* sensUnitPtr = nullptr;
 //This is a directive which defines the method parameters 
 //Defines a cmdFunc as a function which returns void and takes in the parameters of SensorUnit& Packet& and uint8_t
 
-/*
+/** 
 @breif: initializes the internal SensorDefinition as well as the internal function pointer to handle commands requested
-@param SensorDefinition &sensorDef: SensorDefinition to be assigned
+@param: SensorDefinition &sensorDef: SensorDefinition to be assigned
 */
 void SensorUnit::initSensorDefinition(SensorDefinition &sensorDef) {
   if (sensorDef.sensor == Sensors_t::NUM_OF_SENSORS) {
@@ -98,17 +98,18 @@ SensorUnit::SensorUnit(const uint8_t *cuMac, const char *PMKKEYIN, const char *L
   }
   sensorsAvlbl[count].sensor = Sensors_t::BASE;
   initSensorDefinition(sensorsAvlbl[count++]);
-  sensCount = count;
+
+  this->sensCount = count;
   memcpy(PMKKEY, PMKKEYIN, 16);
   sensUnitPtr = this;
 }
 
 
-/*
+/** 
 @breif: default sensor unit ESP-NOW callback for messages recieved
-@param const esp_now_recv_info_t *recvInfo: ESPIDF struct which contains destination address, sender address and RXINFO
-@param const uint8_t *data: the data recieved from ESP-NOW
-@param int dataLen: the length in bytes for  how big the packet was
+@param: const esp_now_recv_info_t *recvInfo: ESPIDF struct which contains destination address, sender address and RXINFO
+@param: const uint8_t *data: the data recieved from ESP-NOW
+@param: int dataLen: the length in bytes for  how big the packet was
 */
 void sensUnitRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, int dataLen) {
   //Assumes sensUnitPtr is properly initialized
@@ -123,9 +124,9 @@ void sensUnitRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, in
 }
 
 
-/*
+/** 
 @breif: default sensor unit ESP-NOW callback for sending messages
-
+@param: Mac address and status of callback
 */
 void sensUnitSendCB(const uint8_t *mac, esp_now_send_status_t status) {
   if (status == ESP_OK) {
@@ -135,7 +136,7 @@ void sensUnitSendCB(const uint8_t *mac, esp_now_send_status_t status) {
   }
 }
 
-/*
+/** 
 @breif: initializes ESP-NOW assuming proper constructor was called
 */
 void SensorUnit::initESPNOW() {
@@ -160,21 +161,17 @@ void SensorUnit::initESPNOW() {
     Serial.println("Failed to add SensUnitManager as a peer please try again");
   }
 
-<<<<<<< HEAD
   esp_now_register_recv_cb(esp_now_recv_cb_t(sensUnitRecvCB));
   esp_now_register_send_cb(esp_now_send_cb_t(sensUnitSendCB));
 
 
 
   Serial.println("Finished initializing");
-=======
-  Serial.println("Finished initializing ESP-NOW");
->>>>>>> 6cc64dfebdbed8485514fe5c3a61a680deec0b31
 }
 
-/*
+/** 
 @breif: sends a packet to the SensorUnitManager via ESP-NOW
-@param const Packet& p: packet to be sent
+@param: const Packet& p: packet to be sent
 */
 void SensorUnit::sendPacket(const Packet& p) {
   esp_err_t result = esp_now_send(cuPeerInf.peer_addr, (uint8_t *)&p, sizeof(p));
@@ -186,18 +183,20 @@ void SensorUnit::sendPacket(const Packet& p) {
 }
 
 void SensorUnit::handlePacket(const Packet &p) {
+  
   Packet pac{};
-  pac.msgID = p.msgID;
-  pac.type = Packet::ACK;
-  pac.dataType = Packet::NULL_T;
-  sendPacket(pac);
 
-  if (p.type == Packet::PING && p.info.sensor == Sensors_t::BASE && p.info.ind == 0) { //Used for initialization of a SensorUnitManager
-    baseCommands(*this, pac, 0);
-  } else if (p.type == Packet::PING) [[likely]] {
-    sendAllPackets(*this);
+  if (p.type == Packet::PING) { 
+    pac.msgID = p.msgID;
+    pac.type = Packet::ACK;
+    pac.dataType = Packet::NULL_T;
+    sendPacket(pac);
+    if (p.info.sensor == Sensors_t::BASE && p.info.ind == 0) {
+      baseCommands(*this, pac, 0); //Initialize sensors AKA serialize sensors and send appropriate packets
+    } else [[likely]]{
+      sendAllPackets(*this); //Send all reading packets on ping
+    }
   } else if (p.type == Packet::POST) {
-
     int i{0};
     for (i = 0; i < sensCount; i++) {
       if (sensorsAvlbl[i].sensor == p.info.sensor) {
@@ -227,7 +226,10 @@ void SensorUnit::handlePacket(const Packet &p) {
   sendPacket(pac);
 }
 
-
+/**
+ * @breif: Sends all reading packets to the communication unit.
+ * @param: Reference to the sensor unit we are sending packets from
+ */
 void sendAllPackets(SensorUnit& sensUnits) {
   Packet pac{};
   defaultFnMethods func;  
@@ -245,7 +247,13 @@ void sendAllPackets(SensorUnit& sensUnits) {
   }
 }
 
-
+/**
+ * @breif: Method that defines temperature sensor functionality, 
+ * will return a packet with error message if faulty reading is recieved
+ * @param: Sensor unit object reference for the command to work
+ * @param: Packet we are writing for sensor unit to send
+ * @param: index of the command we are calling
+ */
 void tempCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
   dataConverter &d{sensUnit.d};
   if (sensUnit.temp == nullptr) {
@@ -267,7 +275,13 @@ void tempCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
     writeErrorMsg(p, d, "INVALID INDEX PASSED");
   }
 }
-
+/**
+ * @breif: Method that defines motion sensor functionality.
+ * Error messages will be written to the packet if faulty state is found
+ * @param: Sensor unit reference we are pulling the pointer from
+ * @param: Packet we are sending to the sensor unit
+ * @param: Index of the command we are pulling
+ */
 void motionCommands(SensorUnit & sensUnit, Packet& p, uint8_t ind) {
   p.type = Packet::READING;
   p.info.sensor = Sensors_t::MOTION;
@@ -284,7 +298,12 @@ void motionCommands(SensorUnit & sensUnit, Packet& p, uint8_t ind) {
     writeErrorMsg(p, d, "INVALID INDEX PASSED");
   }
 }
-
+/**
+ * @breif: Method that defines commands available to every sensor unit
+ * @param: Sensor unit we are pulling information from
+ * @param: Packet we are writing to 
+ * @param: Index of the default command we are requesting
+ */
 void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
   dataConverter d;
   if (ind == 0) {
@@ -300,7 +319,12 @@ void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
   }
 }
 
-
+/**
+ * @breif: Helper method we use to write error messages to packets
+ * @param: Packet we are writing to
+ * @param: data converter we use to help to write to the packet 
+ * @param: error message we are writing to the packet
+ */
 static void writeErrorMsg(Packet& p, dataConverter& d , const char* errormsg) {
   p.info.sensor = Sensors_t::BASE;
   p.info.ind = 1;
