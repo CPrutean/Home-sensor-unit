@@ -32,7 +32,7 @@ private:
 
 struct SensorUnitInfo {
   SensorDefinition sensors[MAXSENSORS]{};
-  SensorUnitReadings readings(); 
+  SensorUnitReadings readings{}; 
   char LMKKEY[16]{};
   esp_now_peer_info_t peerInf{};
   uint8_t sensorCount{0};

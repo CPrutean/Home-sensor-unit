@@ -221,9 +221,7 @@ void SensorUnit::handlePacket(const Packet &p) {
     sendPacket(pac);
   }
 
-  pac.type = Packet::FIN;
-  pac.dataType = Packet::NULL_T;
-  sendPacket(pac);
+  
 }
 
 /**
@@ -304,9 +302,11 @@ void motionCommands(SensorUnit & sensUnit, Packet& p, uint8_t ind) {
  * @param: Packet we are writing to 
  * @param: Index of the default command we are requesting
  */
+
+ //INIT, PING, ERROR
 void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
   dataConverter d;
-  if (ind == 0) {
+  if (ind == 0) { //INIT
     int i{0};
     for (i = 0; i < sensUnit.sensCount; i++) {
       d.str[0] = '\0';
@@ -314,8 +314,10 @@ void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
       p.writeToPacket(d, sizeof(d));
       sensUnit.sendPacket(p);
     }
-  } else {
-    writeErrorMsg(p, d, "INVALID IND");
+  } else if (ind == 1) { //PING
+    sendAllPackets(sensUnit);
+  } else { //ERROR
+    //Assume erronious ind otherwise, however sending a packet with BASE ind = 2 tells SensorUnitmanager there was an error
   }
 }
 
@@ -327,7 +329,7 @@ void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
  */
 static void writeErrorMsg(Packet& p, dataConverter& d , const char* errormsg) {
   p.info.sensor = Sensors_t::BASE;
-  p.info.ind = 1;
+  p.info.ind = 2;
   p.dataType = Packet::STRING_T;
   size_t len = strlen(errormsg);
   snprintf(d.str, len, "%s", errormsg); 

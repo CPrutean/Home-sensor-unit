@@ -21,7 +21,7 @@ void printPacket(const Packet& p) {
     };
     dataConverter d;
 
-    memcpy(d.data, p.packetData, sizeof(Packet));
+    memcpy(d.data, p.packetData, sizeof(d));
 
     str += " of data type and value ";
     switch(p.dataType) {
@@ -48,6 +48,19 @@ void printPacket(const Packet& p) {
 
     str += "With message id ";
     str += String(p.msgID);
+
+
+    str += "With sensor ";
+    switch (p.info.sensor) {
+        case(Sensors_t::BASE): str += "BASE"; break;
+        case(Sensors_t::MOTION): str += "MOTION"; break;
+        case(Sensors_t::TEMPERATURE_AND_HUMIDITY): str += "TEMPERATURE AND HUMIDITY"; break;
+        default: "???"; break;
+    };
+
+    str += "and ind ";
+    str += String(p.info.ind);
+
     Serial.println(str);
 }
 
@@ -56,7 +69,7 @@ void packetHandlerTask(void* params) {
     for (;;) {
         if (SU2.msgQueue.receive(p)) {
             SU2.handlePacket(p);
-            //printPacket(p);
+            printPacket(p);
         }
         vTaskDelay(10/portTICK_PERIOD_MS);
     }

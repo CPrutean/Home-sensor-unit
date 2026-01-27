@@ -5,7 +5,6 @@ WebServer server(80); // Web server on port 80
 SensorUnitManager SUM(CONFIG::SUMAC, 2, server, CONFIG::PMKKEY,
                       CONFIG::SULMKKEYS);
 
-//Soley for debugging
 void printPacket(const Packet& p) {
     String str = "Packet recieved of type  ";
     switch(p.type) {
@@ -18,7 +17,7 @@ void printPacket(const Packet& p) {
     };
     dataConverter d;
 
-    memcpy(d.data, p.packetData, sizeof(Packet));
+    memcpy(d.data, p.packetData, sizeof(d));
 
     str += " of data type and value ";
     switch(p.dataType) {
@@ -45,14 +44,29 @@ void printPacket(const Packet& p) {
 
     str += "With message id ";
     str += String(p.msgID);
+
+
+    str += "With sensor ";
+    switch (p.info.sensor) {
+        case(Sensors_t::BASE): str += "BASE"; break;
+        case(Sensors_t::MOTION): str += "MOTION"; break;
+        case(Sensors_t::TEMPERATURE_AND_HUMIDITY): str += "TEMPERATURE AND HUMIDITY"; break;
+        default: "???"; break;
+    };
+
+    str += "and ind ";
+    str += String(p.info.ind);
+
     Serial.println(str);
 }
+
 
 //Handles packets
 void packetHandlerTask(void *parameters) {
   Packet p;
   for (;;) {
     if (SUM.msgQueue.receive(p)) {
+      printPacket(p);
       SUM.handlePacket(p);
     }
     vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -62,8 +76,12 @@ void packetHandlerTask(void *parameters) {
 // Responsible for pinging the sensor units every few seconds
 void pingTask(void *parameters) {
   Packet p;
+  p.info.sensor = Sensors_t::BASE;
+  p.info.ind = 2;
+  p.type = Packet::PING;
   for (;;) {
     for (int i{0}; i < SUM.getSuCount(); i++) {
+      SUM.sendToSu(p, i);
     }
     vTaskDelay(10000 / portTICK_PERIOD_MS);
   }
