@@ -4,10 +4,9 @@
 #include <WebComponents/WebServerSUM.h>
 #include <esp_now.h>
 #include "ManagerTypes.h"
-
-// Include MessageQueue and MessageAck after SensorUnitStatus is defined
 #include <Components/MessageQueue.h>
 #include <Components/MessageAck.h>
+
 
 // SensorUnitManagers are responsible for sending and receiving messages between sensor units
 class SensorUnitManager final {
