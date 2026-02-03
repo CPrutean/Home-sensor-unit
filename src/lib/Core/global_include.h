@@ -1,8 +1,6 @@
 #pragma once
 #include <Arduino.h>
 #include <WiFi.h>
-#include <etl/optional.h>
-#include <etl/vector.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/FreeRTOSConfig.h>
 #include <freertos/task.h>
@@ -35,20 +33,14 @@ struct PacketInfo_t {
   }
 };
 
-//Union to convert data iteration
-union dataConverter {
-  uint8_t data[MAXPACKETSIZE]{0};
-  int i;
-  float f;
-  double d;
-  char str[MAXPACKETSIZE];
-};
-
-
 //Packets are sent between sensorUnits and used to communicate with the devices
 struct Packet {
-  uint8_t packetData[MAXPACKETSIZE]{};
-  unsigned long long msgID{};
+  union {
+    char str[MAXPACKETSIZE]{0};
+    double d;
+    float f;
+    int i;
+  };
   uint8_t senderAddr[6]{};
   PacketInfo_t info{};
   uint8_t size{};
@@ -56,20 +48,6 @@ struct Packet {
   enum DataType_T : uint8_t { DOUBLE_T = 0, STRING_T, FLOAT_T, INT_T, NULL_T };
   PacketType_T type{NUMTYPES};
   DataType_T dataType{NULL_T};
-
-  //Converts from byte array to the dataConverter union to pull the data
-  void convert(dataConverter &convert) {
-    if (size <= 0) {
-      return;
-    }
-    memcpy(convert.data, packetData, size);
-  }
-
-  //Takes a data value and converts into a packet
-  void writeToPacket(const dataConverter& d, size_t sizeIn) {
-    size = sizeIn;
-    memcpy(packetData, d.data, size);
-  }
 };
 
 
