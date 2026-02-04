@@ -8,15 +8,16 @@ enum class SensorUnitStatus : uint8_t;
 class MessageAck final {
 public:
   MessageAck();
-  void addNewAckArrItem(unsigned long long msgID, unsigned long long postTime); //For the length of the array objects
-  bool removeAckArrItem(unsigned long long msgID); //Removes a ackArrItem that was issued
-  void removeTimedOutReq(SensorUnitStatus* suStatus); //Provide a buffer that pastes the sensor units that are timed out
+  void addSensorUnit(unsigned long suID);
+  void expectPacket(unsigned long suID); //Tells the MessageAck that the sensor unit manager expects a response back
+  void packetRecived(unsigned long suID); //Tells the MessageAck we recived a packet
+  double getPacketDropPercentage(unsigned long suID); //Returns the success rate of packet requests. 
   ~MessageAck();
 private:
-  ackListItem *ackArr{nullptr};
-  void resize();
-  size_t capacity{BEGINACKLEN};
-  size_t size{0};
-  size_t arrSize{};
-  SemaphoreHandle_t mutex{};
+  SemaphoreHandle_t mutex = xSemaphoreCreateRecursiveMutex();
+  unsigned long idArray[MAXPEERS]{0};
+  unsigned long packetsRequested[MAXPEERS]{0};
+  unsigned long packetsRecieved[MAXPEERS]{0};
+  uint8_t getSuArrInd(unsigned long id);
+  uint8_t suCount{0};
 };
