@@ -15,35 +15,31 @@ void printPacket(const Packet& p) {
         case(Packet::FIN): str += "FIN"; break;
         default: str += "???"; break;
     };
-    dataConverter d;
 
-    memcpy(d.data, p.packetData, sizeof(d));
 
     str += " of data type and value ";
     switch(p.dataType) {
         case(Packet::STRING_T): 
             str += "STRING ";
-            str += d.str;
+            str += p.str;
             break;  
         case(Packet::INT_T):
             str += "INT ";
-            str += String(d.i);
+            str += String(p.i);
             break;
         case(Packet::FLOAT_T):
             str += "FLOAT ";
-            str += String(d.f);
+            str += String(p.f);
             break;
         case(Packet::DOUBLE_T):
             str += "DOUBLE ";
-            str += String(d.d);
+            str += String(p.d);
             break;
         case(Packet::NULL_T):
             str += "NULL";
         default: str += "???"; break;
     };
 
-    str += "With message id ";
-    str += String(p.msgID);
 
 
     str += "With sensor ";
@@ -75,27 +71,9 @@ void packetHandlerTask(void *parameters) {
 
 // Responsible for pinging the sensor units every few seconds
 void pingTask(void *parameters) {
-  Packet p;
-  p.info.sensor = Sensors_t::BASE;
-  p.info.ind = 2;
-  p.type = Packet::PING;
   for (;;) {
-    for (int i{0}; i < SUM.getSuCount(); i++) {
-      SUM.sendToSu(p, i);
-    }
-    vTaskDelay(10000 / portTICK_PERIOD_MS);
-  }
-}
-
-// Will contain an int buffer, which will only change the internal error state
-// and update status
-void errorCheckerTask(void *parameters) {
-  SensorUnitStatus
-      status[6]{}; // Online is implicitly 0 so this initializes it to online
-  int i{0};
-  for (;;) {
-    SUM.msgAck.removeTimedOutReq(status);
-    vTaskDelay(10000 / portTICK_PERIOD_MS);
+    SUM.pingAllSU();
+    vTaskDelay(10000/portTICK_PERIOD_MS);
   }
 }
 
@@ -108,7 +86,6 @@ void setup() {
     }
     xTaskCreatePinnedToCore(packetHandlerTask, "Packet Handler Task", 8192, NULL, 1, NULL, 0);
     xTaskCreatePinnedToCore(pingTask, "Sensor Ping Task", 2048, NULL, 1, NULL, 1);
-    xTaskCreatePinnedToCore(errorCheckerTask, "Packet Status Checker", 2048, NULL, 1, NULL, 0);
   Serial.begin(115200);
   SUM.initESPNOW();
   // Assuming esp-now init code works fine then this should work just fine
