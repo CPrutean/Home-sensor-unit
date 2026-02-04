@@ -8,7 +8,7 @@ void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind);
 void initSensUnit(SensorUnit& sensUnit);
 void handlePostRequests(SensorUnit& sensUnit);
 // Forward declaration to allow use before definition
-static void writeErrorMsg(Packet& p, dataConverter& d , const char* errormsg);
+static void writeErrorMsg(Packet& p, const char* errormsg);
 
 using defaultFnMethods = void(*)(SensorUnit&, Packet& p, uint8_t);
 
@@ -75,7 +75,7 @@ void SensorUnit::initSensorDefinition(SensorDefinition &sensorDef) {
 /** 
 @breif: Default constructor for sensor units copies the essential LMKKEYS and PMKKEYS internally for encryption, the SensorUnitManager
 mac address, the pointers to the Sensors, and the pointers to the motion sensors
-@param: uint8_t* cuMac: pointer to the array that contains the SensorUnitManager mac address
+@param: communication unit mac address in
 @param: const char* PMKKEYIN: PMKKEY for standard ESP32 encryption
 @param: const char* LMKKEYIN: LMKKEY for standard ESP32 encryption
 @param: DHT* tempIN: Temperature sensor in if the sensor unit has one available, default param value is nullptr
@@ -187,7 +187,6 @@ void SensorUnit::handlePacket(const Packet &p) {
   Packet pac{};
 
   if (p.type == Packet::PING) { 
-    pac.msgID = p.msgID;
     pac.type = Packet::ACK;
     pac.dataType = Packet::NULL_T;
     sendPacket(pac);
@@ -204,9 +203,8 @@ void SensorUnit::handlePacket(const Packet &p) {
       }      
     }
 
-    dataConverter d; // used for error reporting
     if (sensorsAvlbl[i].msgType[p.info.ind] != Packet::POST) {
-      writeErrorMsg(pac, d, "INVALID COMMAND SENT POST VALUE WAS FALSE");
+      writeErrorMsg(pac, "INVALID COMMAND SENT POST VALUE WAS FALSE");
       sendPacket(pac);
       return;
     }
@@ -216,8 +214,7 @@ void SensorUnit::handlePacket(const Packet &p) {
     func(*this, pac, p.info.ind);
     sendPacket(pac);
   } else [[unlikely]] {
-    dataConverter d; // used for error reporting
-    writeErrorMsg(pac, d, "INVALID PACKET TYPE");
+    writeErrorMsg(pac, "INVALID PACKET TYPE");
     sendPacket(pac);
   }
 
@@ -253,24 +250,23 @@ void sendAllPackets(SensorUnit& sensUnits) {
  * @param: index of the command we are calling
  */
 void tempCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
-  dataConverter &d{sensUnit.d};
   if (sensUnit.temp == nullptr) {
-    writeErrorMsg(p, d, "INVALID SENSOR POINTER");
+    writeErrorMsg(p, "INVALID SENSOR POINTER");
     return;
   }
-
+  p.type = Packet::READING;
+  p.info.sensor = Sensors_t::TEMPERATURE_AND_HUMIDITY;
+  
   if (ind == 0) {
-    d.f = sensUnit.temp->readTemperature();
-    p.writeToPacket(d, sizeof(float));
+    p.f = sensUnit.temp->readTemperature();
     p.dataType = Packet::FLOAT_T;
     p.info.ind = ind;
   } else if (ind == 1) {
-    d.f = sensUnit.temp->readHumidity();
-    p.writeToPacket(d, sizeof(float));
+    p.f = sensUnit.temp->readTemperature();
     p.dataType = Packet::FLOAT_T;
     p.info.ind = ind;
   } else {
-    writeErrorMsg(p, d, "INVALID INDEX PASSED");
+    writeErrorMsg(p, "INVALID INDEX PASSED");
   }
 }
 /**
@@ -283,17 +279,15 @@ void tempCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
 void motionCommands(SensorUnit & sensUnit, Packet& p, uint8_t ind) {
   p.type = Packet::READING;
   p.info.sensor = Sensors_t::MOTION;
-  dataConverter &d{sensUnit.d};
   if (sensUnit.motion == nullptr) {
-    writeErrorMsg(p, d, "SENSOR POINTER WAS NEVER INITIALIZED");
+    writeErrorMsg(p, "SENSOR POINTER WAS NEVER INITIALIZED");
     return;
   }
 
   if (ind == 0) {
-    d.i = sensUnit.motion->read();
-    p.writeToPacket(d, sizeof(int));
+    p.i = sensUnit.motion->read();
   } else {
-    writeErrorMsg(p, d, "INVALID INDEX PASSED");
+    writeErrorMsg(p, "INVALID INDEX PASSED");
   }
 }
 /**
@@ -305,19 +299,18 @@ void motionCommands(SensorUnit & sensUnit, Packet& p, uint8_t ind) {
 
  //INIT, PING, ERROR
 void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
-  dataConverter d;
   if (ind == 0) { //INIT
     int i{0};
     for (i = 0; i < sensUnit.sensCount; i++) {
-      d.str[0] = '\0';
-      sensUnit.sensorsAvlbl[i].toString(d.str, sizeof(d.str));
-      p.writeToPacket(d, sizeof(d));
+      p.str[0] = '\0';
+      sensUnit.sensorsAvlbl[i].toString(p.str, sizeof(p.str));
       sensUnit.sendPacket(p);
     }
   } else if (ind == 1) { //PING
     sendAllPackets(sensUnit);
   } else { //ERROR
     //Assume erronious ind otherwise, however sending a packet with BASE ind = 2 tells SensorUnitmanager there was an error
+    writeErrorMsg(p, "INVALID IND");
   }
 }
 
@@ -327,13 +320,12 @@ void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind) {
  * @param: data converter we use to help to write to the packet 
  * @param: error message we are writing to the packet
  */
-static void writeErrorMsg(Packet& p, dataConverter& d , const char* errormsg) {
+static void writeErrorMsg(Packet& p, const char* errormsg) {
   p.info.sensor = Sensors_t::BASE;
   p.info.ind = 2;
   p.dataType = Packet::STRING_T;
   size_t len = strlen(errormsg);
-  snprintf(d.str, len, "%s", errormsg); 
-  p.writeToPacket(d, len);
+  snprintf(p.str, len, "%s", errormsg); 
 }
 
 #ifdef TESTING

@@ -27,7 +27,6 @@ public:
   DHT *temp{nullptr};
   PIR *motion{nullptr};
   void initSensorDefinition(SensorDefinition& SensorDefinition);
-  dataConverter d;
 private:
   esp_now_peer_info_t cuPeerInf{};
   char PMKKEY[16]{};
