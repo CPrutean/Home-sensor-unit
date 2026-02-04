@@ -97,17 +97,16 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
       int numReadings = suReadings.getReadingCount();
 
       // Add available readings
-      dataConverter d;
       for (uint8_t k = 0; k < sensorDef.numValues && k < 2; k++) {
         JsonObject reading = readings.add<JsonObject>();
         reading["name"] = String(sensorDef.readingStringsArray[k]);
+        Packet pac = suReadings.getReading({static_cast<Sensors_t>(i), j});
         String readingVal{};
-        suReadings.getReading(d.data, sizeof(d), {sensorDef.sensor, k});
         switch(sensorDef.dataType[k]) {
-          case(Packet::STRING_T): readingVal = d.str; break;
-          case(Packet::DOUBLE_T): readingVal = String(d.d); break;
-          case(Packet::FLOAT_T): readingVal = String(d.f); break;
-          case(Packet::INT_T): readingVal = String(d.i); break;
+          case(Packet::STRING_T): readingVal = pac.str; break;
+          case(Packet::DOUBLE_T): readingVal = String(pac.d); break;
+          case(Packet::FLOAT_T): readingVal = String(pac.f); break;
+          case(Packet::INT_T): readingVal = String(pac.i); break;
           case(Packet::NULL_T): readingVal = "NULL"; break;
           default: readingVal = "INVALID TYPE"; break;
         };
