@@ -91,7 +91,7 @@ struct SensorDefinition {
   }
 
   //Deserializes a sensor definition
-  void fromString(char *buffer, size_t size) {
+  void fromString(const char *buffer, size_t size) {
   if (size == 0 || buffer == nullptr) {
     Serial.println("FAILED TO DESERIALIZE: BUFFER INVALID");
     return;

@@ -25,6 +25,7 @@ public:
   void handlePacket(const Packet &packet);
   void initESPNOW();
   void initSensorUnitSensors(int suIndex);
+  void pingAllSU();
   uint8_t getSuCount();
   MessageQueue msgQueue{};
   MessageAck msgAck{};
@@ -35,6 +36,7 @@ protected:
   char PMKKEY[16]{'\0'};
   int macInd(const uint8_t *mac);
   WebServer* servPtr{nullptr};
+  void serializeSensorInfo(int ind, const Packet& p);
 };
 
 void sensUnitManagerSendCB(const uint8_t *mac, esp_now_send_status_t status);
