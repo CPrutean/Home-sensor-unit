@@ -19,43 +19,36 @@ void printPacket(const Packet& p) {
         case(Packet::FIN): str += "FIN"; break;
         default: str += "???"; break;
     };
-    dataConverter d;
-
-    memcpy(d.data, p.packetData, sizeof(d));
 
     str += " of data type and value ";
     switch(p.dataType) {
-        case(Packet::STRING_T): 
+        case(Packet::STRING_T):
             str += "STRING ";
-            str += d.str;
-            break;  
+            str += p.str;
+            break;
         case(Packet::INT_T):
             str += "INT ";
-            str += String(d.i);
+            str += String(p.i);
             break;
         case(Packet::FLOAT_T):
             str += "FLOAT ";
-            str += String(d.f);
+            str += String(p.f);
             break;
         case(Packet::DOUBLE_T):
             str += "DOUBLE ";
-            str += String(d.d);
+            str += String(p.d);
             break;
         case(Packet::NULL_T):
             str += "NULL";
         default: str += "???"; break;
     };
 
-    str += "With message id ";
-    str += String(p.msgID);
-
-
     str += "With sensor ";
     switch (p.info.sensor) {
         case(Sensors_t::BASE): str += "BASE"; break;
         case(Sensors_t::MOTION): str += "MOTION"; break;
         case(Sensors_t::TEMPERATURE_AND_HUMIDITY): str += "TEMPERATURE AND HUMIDITY"; break;
-        default: "???"; break;
+        default: str += "???"; break;
     };
 
     str += "and ind ";
