@@ -2,12 +2,13 @@
 #include <SensorUnitManager/SensorUnitManager.h>
 #define MAXTIMEOUT 10000
 
+MessageAck::MessageAck() {}
 
 uint8_t MessageAck::getSuArrInd(unsigned long id) {
     if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
         Serial.println("Failed to take mutex");
-        return;
-    } 
+        return 255;
+    }
     bool found = false;
     int i;
     for (i = 0; i < suCount; i++) {
@@ -26,8 +27,10 @@ void MessageAck::addSensorUnit(unsigned long suID) {
     if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
         Serial.println("Failed to take mutex");
         return;
-    } else {
+    } else if (suCount < MAXPEERS) {
         idArray[suCount++] = suID;
+    } else {
+        Serial.println("Max peers reached");
     }
 
     xSemaphoreGiveRecursive(mutex);
@@ -71,8 +74,8 @@ void MessageAck::packetRecived(unsigned long suID) {
 double MessageAck::getPacketDropPercentage(unsigned long suID) {
     if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
         Serial.println("Failed to take mutex");
-        return;
-    } 
+        return -1.0;
+    }
 
     uint8_t ind;
     double temp;
