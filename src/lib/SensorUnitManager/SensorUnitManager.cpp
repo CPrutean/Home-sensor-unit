@@ -36,6 +36,7 @@ SensorUnitManager::SensorUnitManager(const uint8_t macAdrIn[MAXPEERS][6],
       continue;
     }
     memcpy(suInfo[i].peerInf.lmk, LMKKEYSIN[i], 16);
+    msgAck.addSensorUnit(ID);
   }
 }
 
@@ -190,7 +191,6 @@ void SensorUnitManager::serializeSensorInfo(int ind, const Packet &p) {
     for (int i{0}; i < suInfo[ind].sensorCount; i++) {
       totalReadingCount += suInfo[ind].sensors[i].numValues;
     }
-    suInfo[ind].readings.postNewSensor(sens.sensor, totalReadingCount);
   }
 }
 
@@ -213,20 +213,16 @@ void SensorUnitManager::handlePacket(const Packet &packet) {
   // sensor units
 
   if (packet.type == Packet::ACK) {
-
+    msgAck.packetRecived(suInfo[ind].SensorUnitID);
     return;
   }
 
   if (packet.info.ind == 0 && packet.info.sensor == Sensors_t::BASE &&
       packet.dataType == Packet::STRING_T)
       [[unlikely]] { // Used for initializing the sensor
-
     serializeSensorInfo(ind, packet);
-
   } else if (packet.type == Packet::READING) [[likely]] {
-
     suInfo[ind].readings.postReading(packet);
-
   } else {
     Serial.println("Invalid packet type");
   }
@@ -261,6 +257,7 @@ void SensorUnitManager::pingAllSU() {
   p.type = Packet::PING;
   p.dataType = Packet::NULL_T;
   for (int i{0}; i < suCount; i++) {
+    msgAck.expectPacket(suInfo[i].SensorUnitID);
     sendToSu(p, i);
   }
 }
