@@ -3,26 +3,25 @@
 #include "../Core/global_include.h"
 #include <esp_now.h>
 #define MAXSENSORS 3
-
+#define MAXREADINGS static_cast<uint8_t>(Sensors_t::BASE)*5
 // Enum moved outside class to break circular dependency with MessageAck
 enum class SensorUnitStatus : uint8_t {ONLINE = 0, ERROR, OFFLINE, NUMTYPES};
 
 
 
-//Group readings by sensor unit
-//Group readings internally by the sensor definition indexes and the values
+//Stores all sensor readings in a single contiguous array
+//Readings are identified and looked up by their PacketInfo_t header
 class SensorUnitReadings final {
 public:
-  explicit SensorUnitReadings();
+  explicit SensorUnitReadings() = default;
   void postReading(const Packet &p);
   int getReadingCount();
-  void postNewSensor(Sensors_t sensor, uint8_t readingCount);
   Packet& getReading(PacketInfo_t packet);
 private:
-  Packet** packetGroupings{nullptr};
-  uint8_t* packetCount{nullptr};
-  uint8_t sensorCount{0};
-  
+  Packet packets[MAXREADINGS]{};
+  uint8_t count{0};
+  uint8_t size{8};
+
   xSemaphoreHandle mutex = xSemaphoreCreateRecursiveMutex();
 };
 
