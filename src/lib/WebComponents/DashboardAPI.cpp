@@ -100,7 +100,7 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
       for (uint8_t k = 0; k < sensorDef.numValues && k < 2; k++) {
         JsonObject reading = readings.add<JsonObject>();
         reading["name"] = String(sensorDef.readingStringsArray[k]);
-        Packet pac = suReadings.getReading({static_cast<Sensors_t>(i), j});
+        Packet pac = suReadings.getReading({static_cast<Sensors_t>(i), static_cast<uint8_t>(j)});
         String readingVal{};
         switch(sensorDef.dataType[k]) {
           case(Packet::STRING_T): readingVal = pac.str; break;
