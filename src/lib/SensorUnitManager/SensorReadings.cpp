@@ -1,7 +1,7 @@
 #include "SensorUnitManager.h"
 
 void SensorUnitReadings::postReading(const Packet &p) {
-  if (xSemaphoreTake(mutex, portMAX_DELAY) != pdTRUE) {
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
   }
 
@@ -13,15 +13,20 @@ void SensorUnitReadings::postReading(const Packet &p) {
       break;
     }
   }
-  if (!found) {
-    Serial.println("Failed to post packet, update firmware for new sensors "
-                   "that were added");
+
+  if (!found && count >= size) {
+    Serial.println("No space for new packet, update firmware");
+  } else if (!found) {
+    packets[count] = p;
+    count++;
+  } else {
+    Serial.println("Packet was found and placed properly");
   }
   xSemaphoreGiveRecursive(mutex);
 }
 
 int SensorUnitReadings::getReadingCount() {
-  if (xSemaphoreTake(mutex, portMAX_DELAY) != pdTRUE) {
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
   }
 
@@ -32,7 +37,7 @@ int SensorUnitReadings::getReadingCount() {
 }
 
 Packet &SensorUnitReadings::getReading(PacketInfo_t packet) {
-  if (xSemaphoreTake(mutex, portMAX_DELAY) != pdTRUE) {
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
   }
 
