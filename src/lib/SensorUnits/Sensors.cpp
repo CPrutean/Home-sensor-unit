@@ -124,6 +124,10 @@ void baseCommands(SensorUnit &sensUnit, Packet &p, uint8_t ind) {
     int i{0};
     for (i = 0; i < sensUnit.sensCount; i++) {
       p.str[0] = '\0';
+      p.info.ind = ind;
+      p.type = Packet::READING;
+      p.dataType = Packet::STRING_T;
+      p.info.sensor = Sensors_t::BASE;
       sensUnit.sensorsAvlbl[i].toString(p.str, sizeof(p.str));
       sensUnit.sendPacket(p);
     }

@@ -18,7 +18,7 @@ public:
   explicit SensorUnit(const uint8_t *cuMac, const char *PMKKEYIN,
                       const char *LMKKEYIN, DHT *tempIn = nullptr,
                       PIR *motion = nullptr);
-  void sendPacket(const Packet &p);
+  void sendPacket(Packet &p);
 
 #ifndef TESTING
   SensorUnit() = delete;

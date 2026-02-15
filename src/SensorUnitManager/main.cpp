@@ -5,62 +5,81 @@ WebServer server(80); // Web server on port 80
 SensorUnitManager SUM(CONFIG::SUMAC, 2, server, CONFIG::PMKKEY,
                       CONFIG::SULMKKEYS);
 
-void printPacket(const Packet& p) {
-    String str = "Packet recieved of type  ";
-    switch(p.type) {
-        case(Packet::ACK): str += "ACK "; break;
-        case(Packet::READING): str += "READING "; break;
-        case(Packet::POST): str += "POST"; break;
-        case(Packet::PING): str += "PING"; break;
-        case(Packet::FIN): str += "FIN"; break;
-        default: str += "???"; break;
-    };
+void printPacket(const Packet &p) {
+  String str = "Packet recieved of type  ";
+  switch (p.type) {
+  case (Packet::ACK):
+    str += "ACK ";
+    break;
+  case (Packet::READING):
+    str += "READING ";
+    break;
+  case (Packet::POST):
+    str += "POST";
+    break;
+  case (Packet::PING):
+    str += "PING";
+    break;
+  case (Packet::FIN):
+    str += "FIN";
+    break;
+  default:
+    str += "???";
+    break;
+  };
 
+  str += " of data type and value ";
+  switch (p.dataType) {
+  case (Packet::STRING_T):
+    str += "STRING ";
+    str += p.str;
+    break;
+  case (Packet::INT_T):
+    str += "INT ";
+    str += String(p.i);
+    break;
+  case (Packet::FLOAT_T):
+    str += "FLOAT ";
+    str += String(p.f);
+    break;
+  case (Packet::DOUBLE_T):
+    str += "DOUBLE ";
+    str += String(p.d);
+    break;
+  case (Packet::NULL_T):
+    str += "NULL";
+  default:
+    str += "???";
+    break;
+  };
 
-    str += " of data type and value ";
-    switch(p.dataType) {
-        case(Packet::STRING_T): 
-            str += "STRING ";
-            str += p.str;
-            break;  
-        case(Packet::INT_T):
-            str += "INT ";
-            str += String(p.i);
-            break;
-        case(Packet::FLOAT_T):
-            str += "FLOAT ";
-            str += String(p.f);
-            break;
-        case(Packet::DOUBLE_T):
-            str += "DOUBLE ";
-            str += String(p.d);
-            break;
-        case(Packet::NULL_T):
-            str += "NULL";
-        default: str += "???"; break;
-    };
+  str += "With sensor ";
+  switch (p.info.sensor) {
+  case (Sensors_t::BASE):
+    str += "BASE";
+    break;
+  case (Sensors_t::MOTION):
+    str += "MOTION";
+    break;
+  case (Sensors_t::TEMPERATURE_AND_HUMIDITY):
+    str += "TEMPERATURE AND HUMIDITY";
+    break;
+  default:
+    "???";
+    break;
+  };
 
+  str += "and ind ";
+  str += String(p.info.ind);
 
-
-    str += "With sensor ";
-    switch (p.info.sensor) {
-        case(Sensors_t::BASE): str += "BASE"; break;
-        case(Sensors_t::MOTION): str += "MOTION"; break;
-        case(Sensors_t::TEMPERATURE_AND_HUMIDITY): str += "TEMPERATURE AND HUMIDITY"; break;
-        default: "???"; break;
-    };
-
-    str += "and ind ";
-    str += String(p.info.ind);
-
-    Serial.println(str);
+  Serial.println(str);
 }
 
 static Packet p;
 void packetHandlerTask(void *parameters) {
   for (;;) {
     if (SUM.msgQueue.receive(p)) {
-      Serial.println("Handling packet");
+      printPacket(p);
       SUM.handlePacket(p);
     }
     vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -71,19 +90,20 @@ void packetHandlerTask(void *parameters) {
 void pingTask(void *parameters) {
   for (;;) {
     SUM.pingAllSU();
-    vTaskDelay(10000/portTICK_PERIOD_MS);
+    vTaskDelay(10000 / portTICK_PERIOD_MS);
   }
 }
 
 void setup() {
-    Serial.begin(115200);
-    SUM.initESPNOW();
-    //Assuming esp-now init code works fine then this should work just fine
-    for (int i{0}; i < SUM.getSuCount(); i++) {
-        SUM.initSensorUnitSensors(i);
-    }
-    xTaskCreatePinnedToCore(packetHandlerTask, "Packet Handler Task", 16000, NULL, 1, NULL, 0);
-    xTaskCreatePinnedToCore(pingTask, "Sensor Ping Task", 2048, NULL, 1, NULL, 1);
+  Serial.begin(115200);
+  SUM.initESPNOW();
+  // Assuming esp-now init code works fine then this should work just fine
+  for (int i{0}; i < SUM.getSuCount(); i++) {
+    SUM.initSensorUnitSensors(i);
+  }
+  xTaskCreatePinnedToCore(packetHandlerTask, "Packet Handler Task", 16000, NULL,
+                          1, NULL, 0);
+  xTaskCreatePinnedToCore(pingTask, "Sensor Ping Task", 2048, NULL, 1, NULL, 1);
 }
 
 void loop() {}

@@ -185,12 +185,8 @@ void SensorUnitManager::serializeSensorInfo(int ind, const Packet &p) {
   if (found) {
     Serial.println("Sensor already exists");
   } else {
-    suInfo[ind].sensors[suInfo[ind].sensorCount++] = sens;
-
-    uint8_t totalReadingCount{0};
-    for (int i{0}; i < suInfo[ind].sensorCount; i++) {
-      totalReadingCount += suInfo[ind].sensors[i].numValues;
-    }
+    suInfo[ind].sensors[suInfo[ind].sensorCount] = sens;
+    suInfo[ind].sensorCount++;
   }
 }
 
@@ -214,14 +210,14 @@ void SensorUnitManager::handlePacket(const Packet &packet) {
 
   if (packet.type == Packet::ACK) {
     msgAck.packetRecived(suInfo[ind].SensorUnitID);
-    return;
-  }
-
-  if (packet.info.ind == 0 && packet.info.sensor == Sensors_t::BASE &&
-      packet.dataType == Packet::STRING_T)
+  } else if (packet.info.ind == 0 && packet.info.sensor == Sensors_t::BASE &&
+             packet.dataType == Packet::STRING_T)
       [[unlikely]] { // Used for initializing the sensor
+
+    Serial.println("SERIALIZING SENSOR INFO");
     serializeSensorInfo(ind, packet);
   } else if (packet.type == Packet::READING) [[likely]] {
+    Serial.println("Writing a packet");
     suInfo[ind].readings.postReading(packet);
   } else {
     Serial.println("Invalid packet type");
