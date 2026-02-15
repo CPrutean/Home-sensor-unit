@@ -5,92 +5,88 @@
 MessageAck::MessageAck() {}
 
 uint8_t MessageAck::getSuArrInd(unsigned long id) {
-    if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
-        Serial.println("Failed to take mutex");
-        return 255;
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
+    Serial.println("Failed to take mutex");
+    return 255;
+  }
+  bool found = false;
+  int i;
+  for (i = 0; i < suCount; i++) {
+    if (id == idArray[i]) {
+      found = 1;
+      break;
     }
-    bool found = false;
-    int i;
-    for (i = 0; i < suCount; i++) {
-        if (id == idArray[i]) {
-            found = 1;
-            break;
-        }
-    }
+  }
 
-    uint8_t temp = found ? i : 255;
-    xSemaphoreGiveRecursive(mutex);
-    return temp;
+  uint8_t temp = found ? i : 255;
+  xSemaphoreGiveRecursive(mutex);
+  return temp;
 }
 
 void MessageAck::addSensorUnit(unsigned long suID) {
-    if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
-        Serial.println("Failed to take mutex");
-        return;
-    } else if (suCount < MAXPEERS) {
-        idArray[suCount++] = suID;
-    } else {
-        Serial.println("Max peers reached");
-    }
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
+    Serial.println("Failed to take mutex");
+    return;
+  } else if (suCount < MAXPEERS) {
+    idArray[suCount++] = suID;
+  } else {
+    Serial.println("Max peers reached");
+  }
 
-    xSemaphoreGiveRecursive(mutex);
+  xSemaphoreGiveRecursive(mutex);
 }
-
 
 void MessageAck::expectPacket(unsigned long suID) {
-    if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
-        Serial.println("Failed to take mutex");
-        return;
-    }
-    uint8_t ind;
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
+    Serial.println("Failed to take mutex");
+    return;
+  }
+  uint8_t ind;
 
-    if ((ind = getSuArrInd(suID)) != 255) {
-        packetsRequested[ind]++;
-    } else {
-        Serial.println("Invalid su array index");
-    }
-   xSemaphoreGiveRecursive(mutex);
-    
+  if ((ind = getSuArrInd(suID)) != 255) {
+    packetsRequested[ind]++;
+  } else {
+    Serial.println("Invalid su array index");
+  }
+  xSemaphoreGiveRecursive(mutex);
 }
-
 
 void MessageAck::packetRecived(unsigned long suID) {
-    if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
-        Serial.println("Failed to take mutex");
-        return;
-    } 
-    
-    uint8_t ind;
-    if ((ind = getSuArrInd(suID)) != 255) {
-        packetsRecieved[ind]++;
-    } else {
-        Serial.println("Invalid su array index");
-    }
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
+    Serial.println("Failed to take mutex");
+    return;
+  }
 
-    xSemaphoreGiveRecursive(mutex);
+  uint8_t ind = getSuArrInd(suID);
+  if (ind != 255) {
+    packetsRecieved[ind]++;
+  } else {
+    Serial.println("Invalid su array index");
+  }
+
+  xSemaphoreGiveRecursive(mutex);
 }
-
 
 double MessageAck::getPacketDropPercentage(unsigned long suID) {
-    if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
-        Serial.println("Failed to take mutex");
-        return -1.0;
-    }
+  if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
+    Serial.println("Failed to take mutex");
+    return -1.0;
+  }
 
-    uint8_t ind;
-    double temp;
-    if ((ind = getSuArrInd(suID)) != 255) {
-        temp = static_cast<double>(packetsRecieved[ind])/static_cast<double>(packetsRequested[ind]);
-    } else {
-        Serial.println("Invalid su array index");
-        temp = -1;
-    }
-    xSemaphoreGiveRecursive(mutex);
-    return temp;
+  uint8_t ind;
+  double temp;
+  if ((ind = getSuArrInd(suID)) != 255) {
+    temp = static_cast<double>(packetsRecieved[ind]) /
+           static_cast<double>(packetsRequested[ind]);
+  } else {
+    Serial.println("Invalid su array index");
+    temp = -1;
+  }
+  xSemaphoreGiveRecursive(mutex);
+  return temp;
 }
-  
-/** 
+
+/**
 @breif: destructor frees internal ackListItem array
 */
-MessageAck::~MessageAck() {
-}
+MessageAck::~MessageAck() {}
