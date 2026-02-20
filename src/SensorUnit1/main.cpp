@@ -2,6 +2,7 @@
 #include <PIR.h>
 #include <SensorUnits/SensorUnits.h>
 #include "../Local_config.h"
+#include <WebServer-SUM-portal/Portal.h>
 
 #define PIRPIN 13
 PIR pir;
