@@ -7,7 +7,6 @@
 
 #define MAXPACKETSIZE 96
 #define MAXREADINGPERSENSOR 10
-
 const char STRSEPER[2] = {'|', '\0'};
 
 /*
