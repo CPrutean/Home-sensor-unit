@@ -1,3 +1,4 @@
+#include "Core/global_include.h"
 #include "SensorUnits.h"
 #include <esp_now.h>
 
@@ -27,11 +28,19 @@ default param value is nullptr
 */
 SensorUnit::SensorUnit(const uint8_t *cuMac, const char *PMKKEYIN,
                        const char *LMKKEYIN, DHT *tempIn, PIR *motionIn)
-    : temp{tempIn}, motion{motionIn} {
-  sensUnitPtr = this;
+    : SensorUnit(PMKKEYIN, LMKKEYIN, tempIn, motionIn) {
+
   memcpy(cuPeerInf.peer_addr, cuMac, 6);
-  memcpy(cuPeerInf.lmk, LMKKEYIN, 16);
+}
+
+SensorUnit::SensorUnit(const char *PMKKEYIN, const char *LMKKEYIN, DHT *tempIn,
+                       PIR *motionIN)
+    : temp{tempIn}, motion{motionIN} {
+
+  sensUnitPtr = this;
   uint8_t count{0};
+  memcpy(cuPeerInf.lmk, LMKKEYIN, 16); // Potentially in unpaired state
+
   if (temp != nullptr) {
     sensorsAvlbl[count].sensor = Sensors_t::TEMPERATURE_AND_HUMIDITY;
     initSensorDefinition(sensorsAvlbl[count++]);
@@ -190,6 +199,14 @@ void sendAllPackets(SensorUnit &sensUnits) {
       }
     }
   }
+}
+
+void SensorUnit::addCuPeers(const uint8_t *mac) {
+  memcpy(cuPeerInf.peer_addr, mac, 6);
+  initESPNOW();
+  // Assuming that the sensor unit gets the mac address normally
+  // then the devices are going to be added to esp_now and start running as
+  // normal
 }
 
 #ifdef TESTING
