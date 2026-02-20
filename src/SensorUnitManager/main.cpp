@@ -1,9 +1,13 @@
 #include "../Local_config.h"
+#include "WiFiType.h"
+#include "freertos/idf_additions.h"
+#include "portmacro.h"
 #include <Core/global_include.h>
 #include <SensorUnitManager/SensorUnitManager.h>
-WebServer server(80); // Web server on port 80
-SensorUnitManager SUM(CONFIG::SUMAC, 2, server, CONFIG::PMKKEY,
-                      CONFIG::SULMKKEYS);
+#include <WebComponents/DashboardAPI.h>
+
+SensorUnitManager SUM(CONFIG::SUMAC, CONFIG::PMKKEY, CONFIG::SULMKKEYS);
+
 
 void printPacket(const Packet &p) {
   String str = "Packet recieved of type  ";
@@ -79,7 +83,7 @@ static Packet p;
 void packetHandlerTask(void *parameters) {
   for (;;) {
     if (SUM.msgQueue.receive(p)) {
-      printPacket(p);
+      // printPacket(p);
       SUM.handlePacket(p);
     }
     vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -96,13 +100,22 @@ void pingTask(void *parameters) {
 
 void setup() {
   Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+
   SUM.initESPNOW();
+
   // Assuming esp-now init code works fine then this should work just fine
+  for (uint8_t i{0}; i < 2; i++) {
+    SUM.addNewSU(CONFIG::SUMAC[i]);
+  }
+
   for (int i{0}; i < SUM.getSuCount(); i++) {
     SUM.initSensorUnitSensors(i);
   }
-  xTaskCreatePinnedToCore(packetHandlerTask, "Packet Handler Task", 16000, NULL,
-                          1, NULL, 0);
+
+  bool connected{false};
+
+  xTaskCreatePinnedToCore(packetHandlerTask, "Packet Handler Task", 8096, NULL, 1, NULL, 0);
   xTaskCreatePinnedToCore(pingTask, "Sensor Ping Task", 2048, NULL, 1, NULL, 1);
 }
 
