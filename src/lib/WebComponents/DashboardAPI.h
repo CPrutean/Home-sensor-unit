@@ -1,8 +1,8 @@
 #pragma once
 
-#include <WebServer.h>
-#include <SensorUnitManager/SensorUnitManager.h>
 #include "../SensorUnitManager/ManagerTypes.h"
+#include <SensorUnitManager/SensorUnitManager.h>
+#include <WebServer.h>
 
 // Dashboard API for SensorUnitManager
 // Provides web interface and REST API endpoints for viewing sensor data
@@ -14,13 +14,16 @@
 // Routes configured:
 //   GET /          - Serves the main dashboard HTML page
 //   GET /dashboard - Serves the main dashboard HTML page
-//   GET /api/sensors - Returns JSON with aggregated sensor data from all sensor units
+//   GET /api/sensors - Returns JSON with aggregated sensor data from all sensor
+//   units
 //
 // Parameters:
 //   server  - Reference to the WebServer instance to configure
-//   manager - Pointer to the SensorUnitManager instance that manages sensor units
+//   manager - Pointer to the SensorUnitManager instance that manages sensor
+//   units
 //
-// Note: Call this function after creating your WebServer instance but before server.begin()
+// Note: Call this function after creating your WebServer instance but before
+// server.begin()
 void initDashboardAPI(WebServer &server, SensorUnitManager *manager);
 
 // Handle sensor data API endpoint for SensorUnitManager

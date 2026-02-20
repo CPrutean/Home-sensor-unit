@@ -1,40 +1,38 @@
 #include "DashboardAPI.h"
 #include "dashboard.h"
-#include <WiFi.h>
 #include <ArduinoJson.h>
+#include <WiFi.h>
 
 // Dashboard API for SensorUnitManager - aggregates data from all sensor units
 void initDashboardAPI(WebServer &server, SensorUnitManager *manager) {
   // Serve the dashboard HTML page
-  server.on("/", HTTP_GET, [&server]() {
-    server.send(200, "text/html", DASHBOARD_HTML);
-  });
+  server.on("/", HTTP_GET,
+            [&server]() { server.send(200, "text/html", DASHBOARD_HTML); });
 
-  server.on("/dashboard", HTTP_GET, [&server]() {
-    server.send(200, "text/html", DASHBOARD_HTML);
-  });
+  server.on("/dashboard", HTTP_GET,
+            [&server]() { server.send(200, "text/html", DASHBOARD_HTML); });
 
   // API endpoint for aggregated sensor data from all sensor units
-  server.on("/api/sensors", HTTP_GET, [&server, manager]() {
-    handleSensorDataAPI(server, manager);
-  });
+  server.on("/api/sensors", HTTP_GET,
+            [&server, manager]() { handleSensorDataAPI(server, manager); });
 }
 
 static const char hexaDecimalArr[] = {"0123456789abcdef"};
 static void macToString(String &str, uint8_t *mac) {
-  if (str != "") { //String should be empty
+  if (str != "") { // String should be empty
     return;
   }
   for (int i{0}; i < 6; i++) {
-    str+=hexaDecimalArr[mac[i]/16];
-    str+=hexaDecimalArr[mac[i]%16];
+    str += hexaDecimalArr[mac[i] / 16];
+    str += hexaDecimalArr[mac[i] % 16];
   }
 }
 
 // Handle API request to get aggregated sensor data from all sensor units
 void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
   if (manager == nullptr) {
-    server.send(500, "application/json", "{\"error\":\"Sensor unit manager not initialized\"}");
+    server.send(500, "application/json",
+                "{\"error\":\"Sensor unit manager not initialized\"}");
     return;
   }
 
@@ -46,6 +44,7 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
   doc["uptime"] = millis() / 1000;
   doc["rssi"] = WiFi.RSSI();
   doc["freeMemory"] = ESP.getFreeHeap();
+  JsonDocument js;
 
   // Create sensor units array - group sensors by their sensor unit
   JsonArray sensorUnits = doc["sensorUnits"].to<JsonArray>();
@@ -53,19 +52,28 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
   // Iterate through all sensor units managed by the manager
   for (int i = 0; i < manager->getSuCount(); i++) {
     info = manager->getSensorUnitInfo(i);
-    if (info.sensorCount == 0) continue; // Skip if no sensors for this unit
+    if (info.sensorCount == 0)
+      continue; // Skip if no sensors for this unit
 
     JsonObject sensorUnitObj = sensorUnits.add<JsonObject>();
     sensorUnitObj["unitIndex"] = i;
     sensorUnitObj["unitId"] = "SensorUnit-" + String(i);
 
     // Add status information
-    const char* statusStr = "UNKNOWN";
-    switch(info.status) {
-      case SensorUnitStatus::ONLINE: statusStr = "ONLINE"; break;
-      case SensorUnitStatus::ERROR: statusStr = "ERROR"; break;
-      case SensorUnitStatus::OFFLINE: statusStr = "OFFLINE"; break;
-      default: statusStr = "UNKNOWN"; break;
+    const char *statusStr = "UNKNOWN";
+    switch (info.status) {
+    case SensorUnitStatus::ONLINE:
+      statusStr = "ONLINE";
+      break;
+    case SensorUnitStatus::ERROR:
+      statusStr = "ERROR";
+      break;
+    case SensorUnitStatus::OFFLINE:
+      statusStr = "OFFLINE";
+      break;
+    default:
+      statusStr = "UNKNOWN";
+      break;
     }
     sensorUnitObj["status"] = statusStr;
 
@@ -100,17 +108,30 @@ void handleSensorDataAPI(WebServer &server, SensorUnitManager *manager) {
       for (uint8_t k = 0; k < sensorDef.numValues && k < 2; k++) {
         JsonObject reading = readings.add<JsonObject>();
         reading["name"] = String(sensorDef.readingStringsArray[k]);
-        Packet pac = suReadings.getReading({static_cast<Sensors_t>(i), static_cast<uint8_t>(j)});
+        Packet pac = suReadings.getReading(
+            {static_cast<Sensors_t>(i), static_cast<uint8_t>(j)});
         String readingVal{};
-        switch(sensorDef.dataType[k]) {
-          case(Packet::STRING_T): readingVal = pac.str; break;
-          case(Packet::DOUBLE_T): readingVal = String(pac.d); break;
-          case(Packet::FLOAT_T): readingVal = String(pac.f); break;
-          case(Packet::INT_T): readingVal = String(pac.i); break;
-          case(Packet::NULL_T): readingVal = "NULL"; break;
-          default: readingVal = "INVALID TYPE"; break;
+        switch (sensorDef.dataType[k]) {
+        case (Packet::STRING_T):
+          readingVal = pac.str;
+          break;
+        case (Packet::DOUBLE_T):
+          readingVal = String(pac.d);
+          break;
+        case (Packet::FLOAT_T):
+          readingVal = String(pac.f);
+          break;
+        case (Packet::INT_T):
+          readingVal = String(pac.i);
+          break;
+        case (Packet::NULL_T):
+          readingVal = "NULL";
+          break;
+        default:
+          readingVal = "INVALID TYPE";
+          break;
         };
-        reading["value"] = readingVal; 
+        reading["value"] = readingVal;
         reading["timestamp"] = millis() / 1000;
       }
     }
