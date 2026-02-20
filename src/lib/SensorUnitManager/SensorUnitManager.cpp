@@ -4,6 +4,13 @@
 // Single definition for the global manager pointer declared in the header
 static SensorUnitManager *sensUnitMngr = nullptr;
 
+SensorUnitManager::SensorUnitManager(const char *PMKKEYIN, const char **LMKKEYSIN) {
+  std::copy(PMKKEYIN, PMKKEYIN + 16, PMKKEY);
+
+  for (uint8_t i{0}; i < MAXPEERS; i++) {
+    std::copy(suInfo[i].peerInf.lmk, suInfo[i].peerInf.lmk+16, LMKKEYSIN[i]);
+  }
+}
 /**
  * @breif: Default constructor for the sensor unit manager,
  * which stores the mac addresses, initializes the web server pointer, and
@@ -15,18 +22,13 @@ static SensorUnitManager *sensUnitMngr = nullptr;
  * @param PMKKEYIN: PMKKEY for encryption we are passing in
  * @param LMKKEYSIN: multiple LMKKEYS we are passing for each sensor unit
  */
-SensorUnitManager::SensorUnitManager(const uint8_t macAdrIn[MAXPEERS][6],
-                                     uint8_t suCountIn, WebServer &serv,
-                                     const char *PMKKEYIN,
-                                     const char **LMKKEYSIN)
-    : suCount{suCountIn} {
+SensorUnitManager::SensorUnitManager(const uint8_t macAdrIn[MAXPEERS][6], const char *PMKKEYIN, const char **LMKKEYSIN): suCount{MAXPEERS} {
   sensUnitMngr = this; // For setting up
-  this->servPtr = &serv;
 
   memcpy(PMKKEY, PMKKEYIN, 16);
 
   unsigned long ID{};
-  for (int i{0}; i < suCountIn; i++) {
+  for (int i{0}; i < MAXPEERS; i++) {
     memcpy(suInfo[i].peerInf.peer_addr, macAdrIn[i], 6);
     memcpy(&ID, macAdrIn[i], 6);
     if (ID != 0) {
@@ -86,8 +88,7 @@ void sensUnitManagerSendCB(const uint8_t *mac, esp_now_send_status_t status) {
  * @param data: data being sent to the esp-devices
  * @param datalen: size of the data being sent
  */
-void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo,
-                           const uint8_t *data, int dataLen) {
+void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo, const uint8_t *data, int dataLen) {
   Serial.println("Packet Recieved");
   Packet packet{};
   memcpy(&packet, data, sizeof(Packet));
@@ -104,36 +105,52 @@ void sensUnitManagerRecvCB(const esp_now_recv_info_t *recvInfo,
  * Initializes the PMK and LMK keys and enables encryption
  */
 void SensorUnitManager::initESPNOW() {
+
   if (PMKKEY[0] == '\0') {
-    Serial.println(
-        "ESPNOW initalization failed due to constructor never being called");
+    Serial.println("ESPNOW initalization failed due to constructor never being called");
     return;
   }
 
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
+
   if (esp_now_init() != ESP_OK) {
     Serial.println("Failure initializing ESP-NOW");
     return;
   }
+  //set static variable to this so we can initialize callbacks
+  sensUnitMngr = this;
 
-  sensUnitMngr = this; // Used for initializing global callbacks
 
   esp_now_set_pmk((uint8_t *)PMKKEY);
   for (int i{0}; i < suCount; i++) {
     suInfo[i].peerInf.channel = 0;
     suInfo[i].peerInf.encrypt = false;
     suInfo[i].peerInf.ifidx = WIFI_IF_STA;
-    if (esp_now_add_peer(&suInfo[i].peerInf) != ESP_OK) {
-      Serial.println("Failed to add a peer please try again");
-    }
-  }
+    //Removed old "add a peer" logic moved to addNewSU
+ }
 
   esp_now_register_recv_cb(esp_now_recv_cb_t(sensUnitManagerRecvCB));
   esp_now_register_send_cb(esp_now_send_cb_t(sensUnitManagerSendCB));
 
   Serial.println("Finished ESPNOWINIT");
 }
+
+
+
+void SensorUnitManager::addNewSU(const uint8_t *mac) {
+  std::copy(mac, mac+6, suInfo[suCount].peerInf.peer_addr);
+  if (suCount >= MAXPEERS) {
+    Serial.println("Too many peers cant add another one");
+  } else if (esp_now_add_peer(&suInfo[suCount].peerInf) != ESP_OK) {
+    Serial.printf("SensorUnitManager failed to add a new peer with mac address %d, %d, %d, %d, %d, %d\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    suCount++;
+  } else {
+    Serial.println("Succesfully added a peer");
+  }
+}
+
+
 
 /**
  * @breif: returns the index of the SensorUnit based on the mac address
