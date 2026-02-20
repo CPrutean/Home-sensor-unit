@@ -83,7 +83,7 @@ void tempCommands(SensorUnit &sensUnit, Packet &p, uint8_t ind) {
     p.dataType = Packet::FLOAT_T;
     p.info.ind = ind;
   } else if (ind == 1) {
-    p.f = sensUnit.temp->readTemperature();
+    p.f = sensUnit.temp->readHumidity();
     p.dataType = Packet::FLOAT_T;
     p.info.ind = ind;
   } else {
