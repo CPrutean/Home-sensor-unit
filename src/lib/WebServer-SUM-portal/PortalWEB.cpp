@@ -26,19 +26,19 @@ void PortalWEB::handleBufferLine() {
         const char* cStr = str.c_str();
         unsigned long suID;
         //Copy the suID so we can place the sensor unit readings in the proper address
-
-        std::copy(cStr+sizeof(SensorUnitReadings)+16, cStr+sizeof(SensorUnitReadings)+24, &suID);
+        offsetof(SensorUnitInfo, SensorUnitID);
+        std::copy(cStr+offsetof(SensorUnitInfo, SensorUnitID), cStr+offsetof(SensorUnitInfo, SensorUnitID)+sizeof(unsigned long), &suID);
         int i;
         bool updated = false;
         for (i = 0; i < MAXPEERS; i++) {
             if (suInfo[i].SensorUnitID == suID) {
                 //Update old info
-                std::copy(cStr, cStr+sizeof(SensorUnitInfo), suInfo[i]);
+                std::copy(cStr, cStr+sizeof(SensorUnitInfo), &suInfo[i]);
                 updated = true;
                 break;
             } else if (suInfo[i].SensorUnitID == 0) {
                 //Add new Sensor Unit
-                std::copy(cStr, cStr+sizeof(SensorUnitInfo), suInfo[i]);
+                std::copy(cStr, cStr+sizeof(SensorUnitInfo), &suInfo[i]);
                 updated = true;
                 break;
             }
@@ -55,11 +55,13 @@ void PortalWEB::handleBufferLine() {
     } else if (header == BufMsgHeader::HANDSHAKE) {
         handshakeReceived = true;
     } else if (header == BufMsgHeader::ERROR) {
-        Serial.printf("Error received: %s\n", str);
+        Serial.printf("Error received: %s\n", str.c_str());
     } else {
-
+        String str{""};
+        str += static_cast<char>(BufMsgHeader::ERROR);
+        str += END_OF_SECTION;
+        str += "Invalid message type sent";
     }
-
 
 }
 
@@ -71,7 +73,7 @@ void PortalWEB::sendSensorUnit(const uint8_t* mac) {
     std::copy(mac, mac+6, buffer.get()+2);
     buffer.get()[8] = '\n';
     buffer.get()[9] = '\0';
-    uartBuffer.print(uartBuffer);
+    uartBuffer.print(buffer.get());
     clearBuffer();
 }
 

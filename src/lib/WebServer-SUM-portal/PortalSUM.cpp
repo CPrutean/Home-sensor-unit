@@ -7,7 +7,7 @@ void writeSuInf(char* buffer, size_t capacity, const SensorUnitInfo& suInf) {
 
     buffer[0] = static_cast<char>(BufMsgHeader::SU_INFO);
     strncat(buffer, END_OF_SECTION, capacity);
-    std::copy(&suInf, &suInf+sizeof(SensorUnitInfo), buffer+2);
+    std::copy(reinterpret_cast<const char*>(&suInf), reinterpret_cast<const char*>(&suInf)+sizeof(SensorUnitInfo), buffer+2);
     buffer[2+sizeof(SensorUnitInfo)+1] = '\0';
 }
 
@@ -16,7 +16,7 @@ void readSuInfFromBuffer(SensorUnitInfo& dest, const char* src, size_t start, si
         Serial.println("Invalid pointer state");
         return;
     }
-    std::copy(src+start, src+start+end, &dest);
+    std::copy(src+start, src+end, &dest);
 }
 
 
@@ -39,7 +39,7 @@ void PortalSUM::sendSensorUnitInfo(SensorUnitInfo* inf) {
     }
     buffer.get()[0] = static_cast<char>(BufMsgHeader::SU_INFO);
     buffer.get()[1] = static_cast<char>(END_OF_SECTION[0]);
-    std::copy(inf, inf+sizeof(SensorUnitInfo), buffer.get()+2);
+    std::copy(reinterpret_cast<const char*>(inf), reinterpret_cast<const char*>(inf)+sizeof(SensorUnitInfo), buffer.get()+2);
     buffer.get()[2+sizeof(SensorUnitInfo)] = '\0';
     uartBuffer.print(buffer.get());
     clearBuffer();
