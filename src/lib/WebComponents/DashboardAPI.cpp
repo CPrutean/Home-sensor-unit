@@ -6,17 +6,14 @@
 // Dashboard API for SensorUnitManager - aggregates data from all sensor units
 void initDashboardAPI(WebServer &server, SensorUnitManager *manager) {
   // Serve the dashboard HTML page
-  server.on("/", HTTP_GET,
-            [&server]() { server.send(200, "text/html", DASHBOARD_HTML); });
+  server.on("/", HTTP_GET, [&server]() { server.send(200, "text/html", DASHBOARD_HTML); });
 
-  server.on("/dashboard", HTTP_GET,
-            [&server]() { server.send(200, "text/html", DASHBOARD_HTML); });
+  server.on("/dashboard", HTTP_GET, [&server]() { server.send(200, "text/html", DASHBOARD_HTML); });
 
   // API endpoint for aggregated sensor data from all sensor units
-  server.on("/api/sensors", HTTP_GET,
-            [&server, manager]() { handleSensorDataAPI(server, manager); });
-}
+  server.on("/api/sensors", HTTP_GET, [&server, manager]() { handleSensorDataAPI(server, manager); });
 
+}
 static const char hexaDecimalArr[] = {"0123456789abcdef"};
 static void macToString(String &str, uint8_t *mac) {
   if (str != "") { // String should be empty
