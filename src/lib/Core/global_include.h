@@ -30,21 +30,26 @@ struct PacketInfo_t {
   }
 };
 
+
 // Packets are sent between sensorUnits and used to communicate with the devices
 struct Packet {
+  enum PacketType_T : uint8_t { PING = 0, ACK, READING, POST, FIN, NUMTYPES };
+  enum DataType_T : uint8_t { DOUBLE_T = 0, STRING_T, FLOAT_T, INT_T, NULL_T };
+
+  //Make it so that when we grab the first 16 bytes of the packet, we get all of the information we need
+  struct alignas(16) {
+    uint8_t senderAddr[6]{};
+    PacketInfo_t info{};
+    uint8_t size{};
+    PacketType_T type{NUMTYPES};
+    DataType_T dataType{NULL_T};
+  };
   union {
     char str[MAXPACKETSIZE]{0};
     double d;
     float f;
     int i;
   };
-  uint8_t senderAddr[6]{};
-  PacketInfo_t info{};
-  uint8_t size{};
-  enum PacketType_T : uint8_t { PING = 0, ACK, READING, POST, FIN, NUMTYPES };
-  enum DataType_T : uint8_t { DOUBLE_T = 0, STRING_T, FLOAT_T, INT_T, NULL_T };
-  PacketType_T type{NUMTYPES};
-  DataType_T dataType{NULL_T};
 };
 
 // Defines a sensor and the function which handles the readings and the indexes
