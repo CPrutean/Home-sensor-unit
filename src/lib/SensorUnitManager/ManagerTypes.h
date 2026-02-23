@@ -26,11 +26,11 @@ private:
 };
 
 struct SensorUnitInfo {
-  SensorDefinition sensors[MAXSENSORS]{};
   SensorUnitReadings readings{};
   char LMKKEY[16]{};
+  unsigned long SensorUnitID{0};
+  SensorDefinition sensors[MAXSENSORS]{};
   esp_now_peer_info_t peerInf{};
   uint8_t sensorCount{0};
   SensorUnitStatus status{};
-  unsigned long SensorUnitID{0};
 };
