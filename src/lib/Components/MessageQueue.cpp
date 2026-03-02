@@ -1,7 +1,7 @@
 #include "MessageQueue.h"
 #include <Core/global_include.h>
 /**
-@breif: MessageQueue object constructor to create internal ESP32 Queue
+@brief: MessageQueue object constructor to create internal ESP32 Queue
 */
 MessageQueue::MessageQueue() {
   queueHandle = xQueueCreate(MAXQUEUELEN, sizeof(Packet));
@@ -11,7 +11,7 @@ MessageQueue::MessageQueue() {
   }
 }
 /**
-@breif: default destructor to delete internal queue
+@brief: default destructor to delete internal queue
 */
 MessageQueue::~MessageQueue() {
   Serial.println("Destroyed MessageQueue object, deleting FreeRTOS queue.");
@@ -23,7 +23,7 @@ MessageQueue::~MessageQueue() {
 #define QUEUE_TIMEOUT_TICKS pdMS_TO_TICKS(100)
 
 /**
-@breif: sends a packet to the internal ESP32 Queue
+@brief: sends a packet to the internal ESP32 Queue
 @param const Packet& packet: the packet being sent to the internal Packet queue
 @return: returns if the packet was successfully sent to the queue
 */
@@ -33,9 +33,9 @@ bool MessageQueue::send(const Packet &packet) {
 }
 
 /**
-@breif: recieves a packet from the internal ESP32 Queue
-@param: Packet& packet: recieves a packet internal from the Packet queue
-@return: returns if the packet was successfully recieved
+@brief: receives a packet from the internal ESP32 Queue
+@param: Packet& packet: receives a packet internal from the Packet queue
+@return: returns if the packet was successfully received
 */
 bool MessageQueue::receive(Packet &packet) {
   return xQueueReceive(queueHandle, (void *)&packet, QUEUE_TIMEOUT_TICKS) ==
