@@ -10,18 +10,19 @@
 // SensorUnitManager should behave the exact same
 #define MAXSENSORS 3
 class SensorUnit final {
-public:
-  SensorUnit(const SensorUnit &) = delete;
-  explicit SensorUnit(const uint8_t *cuMac, const char *PMKKEYIN,
-                      const char *LMKKEYIN, DHT *tempIn = nullptr,
-                      PIR *motion = nullptr);
-  explicit SensorUnit(const char *PMKKEYIN, const char *LMKKEYIN,
-                      DHT *tempIn = nullptr, PIR *motion = nullptr);
+ public:
+  SensorUnit(const SensorUnit&) = delete;
+  explicit SensorUnit(const uint8_t* cuMac, const char* PMKKEYIN,
+                      const char* LMKKEYIN, DHT* tempIn = nullptr,
+                      PIR* motion = nullptr);
+  explicit SensorUnit(const char* PMKKEYIN, const char* LMKKEYIN,
+                      DHT* tempIn = nullptr, PIR* motion = nullptr);
 
-  void handlePacket(const Packet &packet);
+  void handlePacket(const Packet& packet);
   MessageQueue msgQueue{};
   void initESPNOW();
-  void sendPacket(Packet &p);
+  void sendPacket(Packet& p);
+  void broadcastAvailability();
 
 #ifndef TESTING
   SensorUnit() = delete;
@@ -29,15 +30,15 @@ public:
   explicit SensorUnit();
 #endif
   friend void sendAllPackets(
-      SensorUnit &sensUnit); // Outside of these 2 friend methods, no sensors
-                             // should have access to internal private members
-  friend void baseCommands(SensorUnit &sensUnit, Packet &p, uint8_t ind);
-  DHT *temp{nullptr};
-  PIR *motion{nullptr};
-  static SensorUnit &getGlobalSensorUnitInstance();
+      SensorUnit& sensUnit);  // Outside of these 2 friend methods, no sensors
+                              // should have access to internal private members
+  friend void baseCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind);
+  DHT* temp{nullptr};
+  PIR* motion{nullptr};
+  static SensorUnit& getGlobalSensorUnitInstance();
 
-private:
-  void addCuPeers(const uint8_t *mac);
+ private:
+  void addCuPeers(const uint8_t* mac, int channel);
   esp_now_peer_info_t cuPeerInf{};
   char PMKKEY[16]{};
   char CULMKKEY[16]{};
@@ -45,10 +46,10 @@ private:
   uint8_t sensCount{};
 };
 
-using defaultFnMethods = void (*)(SensorUnit &sensorPtr, Packet &p, uint8_t);
+using defaultFnMethods = void (*)(SensorUnit& sensorPtr, Packet& p, uint8_t);
 
-void writeErrorMsg(Packet &p, const char *errormsg);
-void initSensorDefinition(SensorDefinition &SensorDefinition);
-void tempCommands(SensorUnit &sensUnit, Packet &p, uint8_t ind);
-void motionCommands(SensorUnit &sensUnit, Packet &p, uint8_t ind);
-void baseCommands(SensorUnit &, Packet &p, uint8_t ind);
+void writeErrorMsg(Packet& p, const char* errormsg);
+void initSensorDefinition(SensorDefinition& SensorDefinition);
+void tempCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind);
+void motionCommands(SensorUnit& sensUnit, Packet& p, uint8_t ind);
+void baseCommands(SensorUnit&, Packet& p, uint8_t ind);

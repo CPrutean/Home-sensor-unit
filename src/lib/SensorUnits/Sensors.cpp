@@ -1,7 +1,7 @@
 #include "SensorUnits.h"
 
 /**
-@breif: initializes the internal SensorDefinition as well as the internal
+@brief: initializes the internal SensorDefinition as well as the internal
 function pointer to handle commands requested
 @param: SensorDefinition &sensorDef: SensorDefinition to be assigned
 */
@@ -44,18 +44,12 @@ void initSensorDefinition(SensorDefinition &sensorDef) {
              sizeof(sensorDef.readingStringsArray[0]), "%s", "INIT");
     sensorDef.msgType[0] = Packet::READING;
 
-    snprintf(sensorDef.readingStringsArray[1], sizeof(sensorDef.name), "%s",
-             "PING");
+    snprintf(sensorDef.readingStringsArray[1],
+             sizeof(sensorDef.readingStringsArray[1]), "%s", "PING");
     sensorDef.msgType[1] = Packet::READING;
 
-    snprintf(sensorDef.readingStringsArray[2],
-             sizeof(sensorDef.readingStringsArray[2]), "%s",
-             "ERROR"); // Sent to sensorUnitManagers when something erroneous
-                       // has happened
-    sensorDef.msgType[2] = Packet::READING;
-    // Should always be sent with an error code
     sensorDef.fnMemAdr = reinterpret_cast<void *>(baseCommands);
-    sensorDef.numValues = 1;
+    sensorDef.numValues = 2;
     break;
   default:
     Serial.println("Failed to init");
@@ -64,8 +58,8 @@ void initSensorDefinition(SensorDefinition &sensorDef) {
 }
 
 /**
- * @breif: Method that defines temperature sensor functionality,
- * will return a packet with error message if faulty reading is recieved
+ * @brief: Method that defines temperature sensor functionality,
+ * will return a packet with error message if faulty reading is received
  * @param: Sensor unit object reference for the command to work
  * @param: Packet we are writing for sensor unit to send
  * @param: index of the command we are calling
@@ -91,7 +85,7 @@ void tempCommands(SensorUnit &sensUnit, Packet &p, uint8_t ind) {
   }
 }
 /**
- * @breif: Method that defines motion sensor functionality.
+ * @brief: Method that defines motion sensor functionality.
  * Error messages will be written to the packet if faulty state is found
  * @param: Sensor unit reference we are pulling the pointer from
  * @param: Packet we are sending to the sensor unit
@@ -112,7 +106,7 @@ void motionCommands(SensorUnit &sensUnit, Packet &p, uint8_t ind) {
   }
 }
 /**
- * @breif: Method that defines commands available to every sensor unit
+ * @brief: Method that defines commands available to every sensor unit
  * @param: Sensor unit we are pulling information from
  * @param: Packet we are writing to
  * @param: Index of the default command we are requesting
@@ -134,14 +128,14 @@ void baseCommands(SensorUnit &sensUnit, Packet &p, uint8_t ind) {
   } else if (ind == 1) { // PING
     sendAllPackets(sensUnit);
   } else { // ERROR
-    // Assume erronious ind otherwise, however sending a packet with BASE ind =
+    // Assume erroneous ind otherwise, however sending a packet with BASE ind =
     // 2 tells SensorUnitmanager there was an error
     writeErrorMsg(p, "INVALID IND");
   }
 }
 
 /**
- * @breif: Helper method we use to write error messages to packets
+ * @brief: Helper method we use to write error messages to packets
  * @param: Packet we are writing to
  * @param: data converter we use to help to write to the packet
  * @param: error message we are writing to the packet
@@ -150,6 +144,5 @@ void writeErrorMsg(Packet &p, const char *errormsg) {
   p.info.sensor = Sensors_t::BASE;
   p.info.ind = 2;
   p.dataType = Packet::STRING_T;
-  size_t len = strlen(errormsg);
-  snprintf(p.str, len, "%s", errormsg);
+  snprintf(p.str, sizeof(p.str), "%s", errormsg);
 }
