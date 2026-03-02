@@ -3,6 +3,7 @@
 void SensorUnitReadings::postReading(const Packet &p) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
+    return;
   }
 
   bool found = false;
@@ -28,6 +29,7 @@ void SensorUnitReadings::postReading(const Packet &p) {
 int SensorUnitReadings::getReadingCount() {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
+    return 0;
   }
 
   int returnVal = count;
@@ -37,18 +39,20 @@ int SensorUnitReadings::getReadingCount() {
 }
 
 Packet &SensorUnitReadings::getReading(PacketInfo_t packet) {
+  static Packet sentinel{};
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
+    return sentinel;
   }
 
-  Packet *result = &packets[0];
   for (uint8_t i{0}; i < count; i++) {
     if (packets[i].info == packet) {
-      result = &packets[i];
-      break;
+      xSemaphoreGiveRecursive(mutex);
+      return packets[i];
     }
   }
 
+  Serial.println("Reading not found");
   xSemaphoreGiveRecursive(mutex);
-  return *result;
+  return sentinel;
 }
