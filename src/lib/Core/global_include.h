@@ -10,7 +10,7 @@
 const char STRSEPER[2] = {'|', '\0'};
 
 /*
-@breif: enum for different types of sensors
+@brief: enum for different types of sensors
 */
 enum class Sensors_t : uint8_t {
   TEMPERATURE_AND_HUMIDITY = 0,
@@ -25,25 +25,32 @@ struct PacketInfo_t {
   Sensors_t sensor{Sensors_t::NUM_OF_SENSORS};
   uint8_t ind{255};
 
-  bool operator==(const PacketInfo_t &p) const {
+  bool operator==(const PacketInfo_t& p) const {
     return sensor == p.sensor && ind == p.ind;
   }
 };
 
-
 // Packets are sent between sensorUnits and used to communicate with the devices
 struct Packet {
-  enum PacketType_T : uint8_t { PING = 0, ACK, READING, POST, FIN, NUMTYPES };
+  enum PacketType_T : uint8_t {
+    PING = 0,
+    ACK,
+    READING,
+    POST,
+    FIN,
+    DISCOVERY,      // SU sends this
+    DISCOVERY_REQ,  // SUM receives and sends back its information
+    DISCOVERY_FIN,  // SU sends back that its ready for last part of pairing
+    NUMTYPES
+  };
   enum DataType_T : uint8_t { DOUBLE_T = 0, STRING_T, FLOAT_T, INT_T, NULL_T };
 
-  //Make it so that when we grab the first 16 bytes of the packet, we get all of the information we need
-  struct alignas(16) {
-    uint8_t senderAddr[6]{};
-    PacketInfo_t info{};
-    uint8_t size{};
-    PacketType_T type{NUMTYPES};
-    DataType_T dataType{NULL_T};
-  };
+  // Header fields are kept first so they occupy the leading bytes of the packet
+  uint8_t senderAddr[6]{};
+  PacketInfo_t info{};
+  uint8_t size{};
+  PacketType_T type{NUMTYPES};
+  DataType_T dataType{NULL_T};
   union {
     char str[MAXPACKETSIZE]{0};
     double d;
@@ -59,14 +66,14 @@ struct SensorDefinition {
   char readingStringsArray[2][12]{{'\0'}, {'\0'}};
   char name[20]{'\0'};
   Packet::PacketType_T msgType[2]{
-      Packet::NUMTYPES}; // Should only ever be reading or post, other methods
-                         // will throw errors if this isnt true
+      Packet::NUMTYPES};  // Should only ever be reading or post, other methods
+                          // will throw errors if this isnt true
   Packet::DataType_T dataType[2]{Packet::NULL_T};
   Sensors_t sensor{Sensors_t::NUM_OF_SENSORS};
   uint8_t numValues{};
-  void *fnMemAdr{nullptr};
+  void* fnMemAdr{nullptr};
 
-  void toString(char *buffer, size_t bufferSize) {
+  void toString(char* buffer, size_t bufferSize) {
     if (bufferSize == 0 || buffer == nullptr) {
       Serial.println("FAILED TO SERIALIZE: BUFFER INVALID");
       return;
@@ -78,26 +85,23 @@ struct SensorDefinition {
     written =
         snprintf(buffer + offset, bufferSize - offset, "%s%s", name, STRSEPER);
 
-    if (written < 0 || (size_t)written >= bufferSize - offset)
-      return;
+    if (written < 0 || (size_t)written >= bufferSize - offset) return;
     offset += written;
 
     for (int i = 0; i < numValues; i++) {
       written = snprintf(buffer + offset, bufferSize - offset, "%s%s",
                          readingStringsArray[i], STRSEPER);
-      if (written < 0 || (size_t)written >= bufferSize - offset)
-        break;
+      if (written < 0 || (size_t)written >= bufferSize - offset) break;
       offset += written;
 
       written = snprintf(buffer + offset, bufferSize - offset, "%d%s",
                          static_cast<int>(msgType[i]), STRSEPER);
-      if (written < 0 || (size_t)written >= bufferSize - offset)
-        break;
+      if (written < 0 || (size_t)written >= bufferSize - offset) break;
       offset += written;
     }
   }
 
-  void fromString(const char *buffer, size_t size) {
+  void fromString(const char* buffer, size_t size) {
     if (size == 0 || buffer == nullptr) {
       Serial.println("FAILED TO DESERIALIZE: BUFFER INVALID");
       return;
@@ -111,7 +115,6 @@ struct SensorDefinition {
     // We iterate up to size, but we need to handle the end of the string.
     // We add a check for (i == size) to force processing the last token.
     for (int i = 0; i <= size; i++) {
-
       // Check for delimiter OR end of buffer.
       // Note: We check (i == size) to catch the end if there is no \0
       bool isEnd = (i == size) || (buffer[i] == '\0');
@@ -164,13 +167,12 @@ struct SensorDefinition {
 
       // Stop if we hit null terminator naturally to avoid reading past valid
       // data
-      if (isEnd && i < size)
-        break;
+      if (isEnd && i < size) break;
     }
   }
 };
 
-void initSensorDefinition(SensorDefinition &sensorDef);
+void initSensorDefinition(SensorDefinition& sensorDef);
 
 // For message acknowledgement systems
 struct ackListItem {
