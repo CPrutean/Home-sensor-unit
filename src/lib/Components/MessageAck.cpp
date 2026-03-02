@@ -4,7 +4,7 @@
 
 MessageAck::MessageAck() {}
 
-uint8_t MessageAck::getSuArrInd(unsigned long id) {
+uint8_t MessageAck::getSuArrInd(unsigned long long id) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
     return 255;
@@ -23,7 +23,7 @@ uint8_t MessageAck::getSuArrInd(unsigned long id) {
   return temp;
 }
 
-void MessageAck::addSensorUnit(unsigned long suID) {
+void MessageAck::addSensorUnit(unsigned long long suID) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
     return;
@@ -36,7 +36,7 @@ void MessageAck::addSensorUnit(unsigned long suID) {
   xSemaphoreGiveRecursive(mutex);
 }
 
-void MessageAck::expectPacket(unsigned long suID) {
+void MessageAck::expectPacket(unsigned long long suID) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
     return;
@@ -51,7 +51,7 @@ void MessageAck::expectPacket(unsigned long suID) {
   xSemaphoreGiveRecursive(mutex);
 }
 
-void MessageAck::packetRecived(unsigned long suID) {
+void MessageAck::packetReceived(unsigned long long suID) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
     return;
@@ -59,7 +59,7 @@ void MessageAck::packetRecived(unsigned long suID) {
 
   uint8_t ind = getSuArrInd(suID);
   if (ind != 255) {
-    packetsRecieved[ind]++;
+    packetsReceived[ind]++;
   } else {
     Serial.println("Invalid su array index");
   }
@@ -67,7 +67,7 @@ void MessageAck::packetRecived(unsigned long suID) {
   xSemaphoreGiveRecursive(mutex);
 }
 
-double MessageAck::getPacketDropPercentage(unsigned long suID) {
+double MessageAck::getPacketDropPercentage(unsigned long long suID) {
   if (xSemaphoreTakeRecursive(mutex, portMAX_DELAY) != pdTRUE) {
     Serial.println("Failed to take mutex");
     return -1.0;
@@ -76,7 +76,7 @@ double MessageAck::getPacketDropPercentage(unsigned long suID) {
   uint8_t ind;
   double temp;
   if ((ind = getSuArrInd(suID)) != 255) {
-    temp = static_cast<double>(packetsRecieved[ind]) /
+    temp = static_cast<double>(packetsReceived[ind]) /
            static_cast<double>(packetsRequested[ind]);
   } else {
     Serial.println("Invalid su array index");
@@ -87,6 +87,6 @@ double MessageAck::getPacketDropPercentage(unsigned long suID) {
 }
 
 /**
-@breif: destructor frees internal ackListItem array
+@brief: destructor frees internal ackListItem array
 */
 MessageAck::~MessageAck() {}
